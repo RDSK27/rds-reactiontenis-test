@@ -2254,7 +2254,11 @@ function finishTennis(){
     saveBtn.addEventListener("click", function(){
       var nm = getHomeName() || "RDS";
       saveBtn.disabled = true; saveBtn.classList.add("saved"); saveBtn.textContent = "Guardado";
-      saveTennisScore(nm, a).catch(function(){});
+      saveTennisScore(nm, a).catch(function(err){
+        var fb = $("save-feedback");
+        if (fb) fb.textContent = "Guardado solo en este dispositivo (fallo el ranking global)";
+        try { console.warn("save error", err); } catch(e2){}
+      });
     });
   }
   if (!canSave && $("save-feedback")) $("save-feedback").textContent = "Sin bolas tocadas: no se guarda";
@@ -3017,7 +3021,10 @@ function pushScore(rec){
     safeSet(key, list);
   } catch (e) {}
   // ranking global
-  if (window.RDS_DB && window.RDS_DB.ok) return window.RDS_DB.add(rec);
+  if (window.RDS_DB && window.RDS_DB.ok){
+    try { return window.RDS_DB.add(rec); }
+    catch (e) { return Promise.reject(e); }        // addDoc valida y lanza de forma sincrona
+  }
   return Promise.resolve();
 }
 
@@ -3059,7 +3066,7 @@ function saveTennisScore(name, a){
     avgRT: a.n ? Math.round(a.avg) : 0,
     trials: a.n,
     won: (state.matchWinner === "me") ? 1 : 0,
-    setScores: (state.setScores || []).map(function(s){ return [s[0], s[1]]; }),
+    setScores: (state.setScores || []).map(function(s){ return { m: numOk(s[0]), r: numOk(s[1]) }; }),   // Firestore NO admite arrays anidados
     setsMe: state.sets ? state.sets.me : 0,
     setsRival: state.sets ? state.sets.rival : 0,
     readOk: state.matchReadOk || 0,
@@ -3198,6 +3205,15 @@ function rankSorter(){
   if (rankFilter.order === "resultado"){ return (rankFilter.mode === "extremo") ? cmpSetResult : cmpPartidoResult; }
   return cmpAnalisis;   // analisis
 }
+function normScores(r){                       // {m,r} (Firestore) -> [m,r] (lo que usan etiquetas y comparadores)
+  var ss = r.setScores;
+  if (ss && ss.length && !(ss[0] instanceof Array)){
+    var out = [];
+    for (var i=0;i<ss.length;i++) out.push([numOk(ss[i].m), numOk(ss[i].r)]);
+    r.setScores = out;
+  }
+  return r;
+}
 function renderRanking(){
   var host = $("rk-table");
   var list;
@@ -3214,6 +3230,7 @@ function renderRanking(){
     list = safeGet(lbKey(rankFilter.mode, free ? 0 : rankFilter.count, free ? true : rankFilter.penaliza));
     if (!free && rankFilter.mode !== "normal"){ list = list.filter(function(r){ return (r.matchMode || "azar") === rankFilter.matchMode; }); }
   }
+  list = list.map(normScores);
   list.sort(rankSorter());
   renderRankList(list, host, rankFilter.mode);
 }
