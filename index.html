@@ -122,9 +122,11 @@ header img{width:100%;height:auto;display:block;margin-bottom:0;}
 .pt1v1-res{font-weight:900;font-size:15px;color:var(--rds-red);text-transform:uppercase;letter-spacing:1px;}
 .pt1v1-sc{font-weight:900;font-size:22px;color:#111;margin:2px 0 8px;}
 .pt1v1-btn{width:100%;padding:9px;border:none;border-radius:8px;background:var(--rds-red);color:#fff;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:5px;}
+.pt1v1-btn.wait{background:#c9c9c9;color:#ffffff;}
 .pt1v1-btn.ok{background:#2e7d32;}
 .pt1v1-btn.locked{opacity:0.42;filter:grayscale(0.6);pointer-events:none;}
 .pt1v1-tac{background:#555;}
+.pt1v1-rs{background:radial-gradient(circle at 35% 30%, #eaf657 0%, #cfe000 55%, #a9bd00 100%);color:#2a3300;}
 .pt1v1-tacbox select:disabled{background:#eee !important;border-color:#ccc !important;color:#bbb !important;opacity:1;}
 .dd{position:relative;margin-top:6px;}
 .dd-head{width:100%;box-sizing:border-box;padding:8px 9px;font-size:12px;font-weight:700;border:2px solid #111;border-radius:6px;background:#fff;color:#111;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;}
@@ -362,7 +364,7 @@ table.rk tr.top3 td{background:#f7efe7;}
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div></div>
       <button class="btn rank" id="btn-goranking">&#127942; RANKING</button>
       </div>
-      <div class="app-ver">rtenis-v123</div>
+      <div class="app-ver">rtenis-v128</div>
     </div>
   </section>
 
@@ -374,7 +376,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <div class="pt1v1-sc" id="pt1v1-sc-2">0 - 0</div>
         <button class="pt1v1-btn" id="pt1v1-go-2" onclick="ready1v1(2)">Seguir</button>
         <button class="pt1v1-btn pt1v1-tac" id="pt1v1-tc-2" onclick="openTac1v1(2)">T&#225;ctica</button>
-        <button class="pt1v1-btn" id="pt1v1-rs-2" style="display:none;" onclick="open1v1Results(2)">Resultados</button>
+        <button class="pt1v1-btn pt1v1-rs" id="pt1v1-rs-2" style="display:none;" onclick="open1v1Results(2)">Resultados</button>
 
       </div>
       <div class="pt1v1" id="pt1v1-1" style="display:none;bottom:6%;">
@@ -382,7 +384,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <div class="pt1v1-sc" id="pt1v1-sc-1">0 - 0</div>
         <button class="pt1v1-btn" id="pt1v1-go-1" onclick="ready1v1(1)">Seguir</button>
         <button class="pt1v1-btn pt1v1-tac" id="pt1v1-tc-1" onclick="openTac1v1(1)">T&#225;ctica</button>
-        <button class="pt1v1-btn" id="pt1v1-rs-1" style="display:none;" onclick="open1v1Results(1)">Resultados</button>
+        <button class="pt1v1-btn pt1v1-rs" id="pt1v1-rs-1" style="display:none;" onclick="open1v1Results(1)">Resultados</button>
 
       </div>
       <div id="cd-1v1" style="display:none;"><span id="cd-1v1-n">3</span></div>
@@ -400,8 +402,8 @@ table.rk tr.top3 td{background:#f7efe7;}
           <button class="pause-btn d1v1-btn" data-d1v1="extremo">Set</button>
           <button class="pause-btn d1v1-btn" data-d1v1="limite">Partido</button>
           <div class="mm-count" id="d1v1-count">
-            <button class="mm-cbtn" data-c1v1="4">SET 4</button>
-            <button class="mm-cbtn sel" data-c1v1="6">SET 6</button>
+            <button class="mm-cbtn sel" data-c1v1="4">SET 4</button>
+            <button class="mm-cbtn" data-c1v1="6">SET 6</button>
           </div>
           <button class="pause-btn pause-alt" onclick="goHome()">Inicio</button>
         </div>
@@ -699,7 +701,7 @@ var p1v1 = [
   { mode:"tactica", tactic:"esquinas", style:"pasabolas" },   // Jugador 1 (abajo)
   { mode:"tactica", tactic:"esquinas", style:"pasabolas" }    // Jugador 2 (arriba)
 ];
-var d1v1 = { mode:"normal", count:6 };
+var d1v1 = { mode:"normal", count:4 };
 function ddClose(){ var pk = $("dd-pick"); if (pk) pk.style.display = "none"; }
 function ddOpen(player, title, opts, cur, onPick){
   var pk = $("dd-pick"), box = $("dd-pick-opts"), ttl = $("dd-pick-ttl");
@@ -781,6 +783,7 @@ function prepare1v1(){
   p1v1[1]._side = null; p1v1[2]._side = null;
   p1v1[1]._n = 0; p1v1[2]._n = 0;
   p1v1[1]._hist = []; p1v1[2]._hist = []; p1v1[1]._cool = 0; p1v1[2]._cool = 0;
+  p1v1[1]._seen = 0; p1v1[2]._seen = 0; p1v1[1]._srpCool = 0; p1v1[2]._srpCool = 0;
   drawCourt();
   showStart1v1();
 }
@@ -794,6 +797,7 @@ function showStart1v1(){
     if (go){
       go.textContent = "Seguir";
       go.classList.remove("ok");
+      go.classList.remove("wait");
       go.onclick = (function(k){ return function(){ readyStart1v1(k); }; })(n);
     }
     box.style.display = "block";
@@ -816,6 +820,10 @@ function readyStart1v1(n){
 function markPicked1v1(n){
   if (!g1.picked) g1.picked = {1:false, 2:false};
   g1.picked[n] = true;
+  p1v1[n]._seen = 0;                                  // plan nuevo: el rival vuelve a tener que leerlo
+  p1v1[n]._srpCool = 0;
+  p1v1[n]._hist = [];
+  p1v1[n]._cool = 0;
   if (!g1.on) syncStart1v1();
 }
 // ---------- Motor 1vs1 ----------
@@ -879,9 +887,23 @@ function pattern1v1(pl, rallyIgnored){
     dep = Math.min(2, k);
     lat = (Math.random() < P.sideVar) ? Math.floor(Math.random() * 3) : lat;
   }
-  var br = brkBreak(cfg, tac, lat);      // si la secuencia se repite dos veces, se rompe
-  if (br){ lat = br.lat; dep = br.dep; }
+  cfg._seen = (cfg._seen || 0) + 1;      // golpes que este jugador lleva mandados con su plan ACTUAL
+  var srp = false;
+  if (tac && cfg._seen > SRP_MIN){       // antes de SRP_MIN no hay sorpresa: nadie puede leer lo que no ha visto
+    if ((cfg._srpCool || 0) <= 0){
+      var br = brkBreak(cfg, tac, lat);  // la secuencia se ha repetido dos veces (esquinas/insistencia)
+      if (br || Math.random() < SRP_P) srp = true;   // ... o sorpresa probabilistica, como en el motor normal
+    } else {
+      cfg._srpCool--;
+    }
+  }
+  if (srp){
+    cfg._srpCool = SRP_COOL;
+    lat = (lat === 0) ? 2 : ((lat === 2) ? 0 : ((Math.random() < 0.5) ? 0 : 2));   // al lado contrario del esperado
+    dep = 2;                                                                        // y corta
+  }
   brkPush(cfg, tac, lat, dep);           // se guarda el golpe REAL, no el previsto
+  g1.pNext = tac ? (srp ? 0 : ((cfg._seen > SRP_MIN) ? 1 : 2)) : 2;   // sin tactica no hay patron que leer
   return { lat: lat, dep: dep };
 }
 var SPEED_1V1 = 0.70;   // ajuste fino del 1vs1: 0.85=rapida(507ms) 0.70=viva(615ms) 0.60=media(718ms) 0.50=comoda(861ms)
@@ -906,6 +928,7 @@ function serve1v1(){
   var ox = right ? s.latX[2] : s.latX[0];
   var tz = s.zone(opp);
   var tx = right ? s.latX[0] : s.latX[2];               // cruzado
+  g1.pNext = 2;                                        // el saque no cuenta como bola del plan
   launch1v1(ox, oz[0], tx, tz[1], pl, opp);
 }
 function launch1v1(ox, oy, tx, ty, from, to){
@@ -918,7 +941,8 @@ function launch1v1(ox, oy, tx, ty, from, to){
   if (fn < 0.02) fn = 0.02;
   if (fn > 0.98) fn = 0.98;
   g1.ball = { x:ox, y:oy, vx:dx/len*V, vy:dy/len*V, r:r, tAppear:performance.now(), trail:[], to:to, tx:tx, ty:ty,
-              k:(g1.k || 0), tFlight:tf, fnet:fn, dist:len };
+              k:(g1.k || 0), tFlight:tf, fnet:fn, dist:len,
+              p:((g1.pNext != null) ? g1.pNext : 2) };            // 0 sorpresa | 1 patron | 2 tanteo
   g1.k = (g1.k || 0) + 1;                                        // 0 = saque, 1 = resto, 2 = ...
   g1.turn = to;
 }
@@ -943,7 +967,8 @@ function logBall1v1(pl, hit, dist, hitR, rt){
     e: Math.round((hitR > 0 ? dist / hitR : 0) * 100) / 100,
     d: Math.round(b.dist || 0),
     c: 0,
-    h: hit ? 1 : 0
+    h: hit ? 1 : 0,
+    p: (b.p != null) ? b.p : 2
   });
 }
 function hit1v1(pl, px, py){
@@ -1053,6 +1078,13 @@ function render1v1Results(pl){
   if (sw) sw.addEventListener("click", function(){ render1v1Results(opp); });
   if (canChart) setTimeout(function(){ drawAntChart("ant-chart", stC.byK); }, 80);
 }
+function again1v1(n){
+  if (g1.ready[n]) return;
+  g1.ready[n] = true;
+  var go = $("pt1v1-go-" + n);
+  if (go){ go.textContent = "Listo"; go.classList.remove("wait"); go.classList.add("ok"); }
+  if (g1.ready[1] && g1.ready[2]){ hidePt1v1(); show1v1Setup(); }   // los dos quieren otra: al setup
+}
 function showEnd1v1(){
   stop1v1();
   for (var n = 1; n <= 2; n++){
@@ -1060,7 +1092,7 @@ function showEnd1v1(){
     var res = $("pt1v1-res-" + n), sc = $("pt1v1-sc-" + n), go = $("pt1v1-go-" + n);
     if (res) res.textContent = (g1.winner === n) ? "\u00a1GANAS!" : "PIERDES";
     if (sc) sc.textContent = (d1v1.mode === "normal") ? "Juego" : setLabel1v1(n);
-    if (go){ go.textContent = "Otra vez"; go.classList.remove("ok"); go.onclick = function(){ hidePt1v1(); show1v1Setup(); }; }
+    if (go){ go.textContent = "Otra vez"; go.classList.remove("ok"); go.classList.add("wait"); go.onclick = (function(k){ return function(){ again1v1(k); }; })(n); }
     var tc = $("pt1v1-tc-" + n); if (tc) tc.style.display = "none";      // partido acabado: la tactica ya no pinta nada
     var rs = $("pt1v1-rs-" + n); if (rs) rs.style.display = "";
     box.style.display = "block";
@@ -1076,7 +1108,7 @@ function showPt1v1(winner, why){
     if (g1.ev === "set") ttl = (winner === n) ? "\u00a1SET!" : "SET EN CONTRA";
     if (res) res.textContent = ttl;
     if (sc) sc.innerHTML = gameLabel1v1(n, true) + (d1v1.mode !== "normal" ? '<div style="font-size:11px;color:#666;font-weight:700;margin-top:2px;">' + setLabel1v1(n) + '</div>' : "");
-    if (go){ go.textContent = "Seguir"; go.classList.remove("ok"); go.onclick = (function(k){ return function(){ ready1v1(k); }; })(n); }
+    if (go){ go.textContent = "Seguir"; go.classList.remove("ok"); go.classList.remove("wait"); go.onclick = (function(k){ return function(){ ready1v1(k); }; })(n); }
     var tc = $("pt1v1-tc-" + n); if (tc) tc.style.display = "";
     var rs = $("pt1v1-rs-" + n); if (rs) rs.style.display = "none";
     box.style.display = "block";
@@ -1084,7 +1116,11 @@ function showPt1v1(winner, why){
 }
 function hidePt1v1(){
   ddClose();
-  for (var n = 1; n <= 2; n++){ var b = $("pt1v1-" + n); if (b) b.style.display = "none"; }
+  for (var n = 1; n <= 2; n++){
+    var b = $("pt1v1-" + n); if (b) b.style.display = "none";
+    var tc = $("pt1v1-tc-" + n); if (tc) tc.style.display = "";       // estado por defecto de las cajas:
+    var rs = $("pt1v1-rs-" + n); if (rs) rs.style.display = "none";   // Tactica si, Resultados no
+  }
 }
 function countdown1v1(after){
   var el = $("cd-1v1"), num = $("cd-1v1-n");
@@ -1946,6 +1982,13 @@ function makeServeShot(){
   return { g: g, o: o, d: d };
 }
 
+// ---------- Bola sorpresa: ruptura del patron en Juego/Set/Partido ----------
+// Sale del lado CONTRARIO al que dicta la tactica y CORTA (cerca de la red).
+// No aparece hasta haber visto SRP_MIN golpes del plan (el plan es constante dentro del juego),
+// y luego es probabilistica: si cayera siempre en el mismo golpe, la sorpresa seria el patron.
+var SRP_MIN  = 8;      // golpes del plan que hay que ver antes de que pueda salir una sorpresa
+var SRP_P    = 0.25;   // probabilidad de sorpresa por bola, pasado el umbral
+var SRP_COOL = 3;      // golpes de enfriamiento despues de una sorpresa
 function tacticOrigin(origins){
   var p = state.point, key = p.tactic, i = p.hits, n = p.n;
   var last = (i >= n - 1);
@@ -1959,6 +2002,17 @@ function tacticOrigin(origins){
   else if (key === "prof_dejada"){ if (last){ row = 2; lat = alt; } else { row = 0; lat = 1; } }
   else if (key === "dejada_subir"){ row = (i <= Math.ceil(n / 2)) ? 1 : 2; lat = alt; }
   else { row = 0; lat = 1; }
+  state.planSeen = (state.planSeen || 0) + 1;                 // golpes del plan vistos en ESTE juego
+  var srp = (state.planSeen > SRP_MIN) && ((state.srpCool || 0) <= 0) && (Math.random() < SRP_P);
+  if (srp){
+    state.srpCool = SRP_COOL;
+    lat = (lat === 0) ? 2 : ((lat === 2) ? 0 : ((Math.random() < 0.5) ? 0 : 2));   // al lado contrario del esperado
+    row = 2;                                                                        // y corta
+    state.pNext = 0;                                                                // 0 = sorpresa
+  } else {
+    if (state.srpCool > 0) state.srpCool--;
+    state.pNext = (state.planSeen > SRP_MIN) ? 1 : 2;          // 1 = patron ya legible | 2 = tanteo (no cuenta)
+  }
   if (lat < 0) lat = 0; if (lat > 2) lat = 2;
   if (row < 0) row = 0; if (row > 2) row = 2;
   return origins[row * 3 + lat];
@@ -1969,7 +2023,7 @@ function makeTacticShot(){
   var o = tacticOrigin(s.origins);
   var d = s.dests[Math.floor(Math.random() * s.dests.length)];
   if (state.point && state.point.style) state.styleSpeed = styleSpeedFor(state.point.style);
-  return { g: g, o: o, d: d };
+  return { g: g, o: o, d: d, p: state.pNext };   // 0 sorpresa | 1 patron | 2 tanteo
 }
 
 // Estilos del rival (modo Estrategia): parametros de las bolas que vienen
@@ -2070,6 +2124,8 @@ function setGamePlan(){
     plan.tactic = state.rivalTactic;  // null en azar/estrategia
   }
   state.gameplan = plan;
+  state.planSeen = 0;                 // plan nuevo: el jugador vuelve a no saber nada
+  state.srpCool = 0;
 }
 function styleOrigin(origins){
   var sp = STYLE_PARAMS[state.point.style] || STYLE_PARAMS.todo_pista;
@@ -2145,7 +2201,8 @@ function launchTennisBall(shot){
                dist: len,                             // recorrido de la bola (px)
                cued: !!shot.cued,                     // llevaba preaviso (estela)
                fnet: (Math.abs(dy) > 0.001) ? Math.max(0, Math.min(0.99, (g.cy - o.y) / dy)) : 0.5,   // fraccion del vuelo al cruzar la RED
-               k: (state.point ? state.point.hits : 0) };   // numero de golpe dentro del punto
+               k: (state.point ? state.point.hits : 0),    // numero de golpe dentro del punto
+               p: shot.p };                                 // 0 sorpresa | 1 patron | 2 tanteo/no aplica
 }
 function drawTennisBall(tb){
   var x = tb.x, y = tb.y, r = tb.r;
@@ -2325,21 +2382,24 @@ function logBall(hit, dist, hitR, rt){
     e: Math.round((hitR > 0 ? dist / hitR : 0) * 100) / 100,   // error de punteria (1 = borde de la zona)
     d: Math.round(b.dist || 0),                      // recorrido de la bola (px)
     c: b.cued ? 1 : 0,                               // con preaviso
-    h: hit ? 1 : 0                                   // tocada / fallada
+    h: hit ? 1 : 0,                                  // tocada / fallada
+    p: (b.p != null) ? b.p : 2                       // 0 = sorpresa | 1 = patron | 2 = tanteo / sin patron
   });
 }
 // ---------- Metricas de la bola instrumentada ----------
 // UMBRALES PROVISIONALES: revisar con datos reales de jugadores
 var TH_ANT = { good: 70, mid: 30 };       // ANTICIPACION 0-100: 100 = cortada en la RED, 46 = linea de saque (T), 0 = donde BOTA
 var TH_EST = { good: 80, mid: 65 };       // estabilidad 0-100 = 100 - desviacion de la anticipacion
-var TH_LEC = { good: 5, mid: 0 };         // mejora en puntos porcentuales (MAS = mejor)
+var TH_LEC = { good: 12, mid: 4 };        // LECTURA DEL PATRON: puntos de anticipacion que ganas cuando el rival repite
+var LEC_MIN_PAT = 6;                      // bolas de patron minimas para poder decir algo
+var LEC_MIN_SRP = 3;                      // bolas sorpresa minimas
 var TH_TST = { good: 70, mid: 40 };       // acierto del test "?" (azar = 25% con 4 opciones)
 var MET_COL = { bien: "#2f7d4f", regular: "#c9922b", mal: "#b03a2e" };
 function ballStats(balls){
   var B = balls || state.tbBalls || [], hit = [], i;   // sin argumento: motor normal
   for (i=0;i<B.length;i++) if (B[i].h && B[i].tf > 0) hit.push(B[i]);
   var n = hit.length;
-  var out = { n:n, ok:false, ant:0, sd:0, estab:0, lect:0, byK:[] };
+  var out = { n:n, ok:false, ant:0, sd:0, estab:0, byK:[], nPat:0, nSrp:0, gap:0, gapOk:false };
   if (n < 4) return out;                                    // con menos de 4 bolas no hay nada que decir
   out.ok = true;
   function antOf(b){ return (b.a != null) ? b.a : 0; }      // escala 0-100 anclada a la pista
@@ -2351,10 +2411,20 @@ function ballStats(balls){
   out.ant = m;                                              // ANTICIPACION media (0-100)
   out.sd = sd;
   out.estab = Math.max(0, Math.min(100, Math.round(100 - sd)));   // ESTABILIDAD: menos dispersion = mas estable
-  var half = Math.floor(n / 2), s1 = 0, s2 = 0;
-  for (i=0;i<half;i++) s1 += antOf(hit[i]);
-  for (i=half;i<n;i++) s2 += antOf(hit[i]);
-  out.lect = (s2 / (n - half)) - (s1 / half);               // LECTURA: puntos de anticipacion ganados
+  // LECTURA DEL PATRON: lo que ganas cuando el rival repite frente a cuando te rompe el patron.
+  // El que lee se apoya en el patron y se come la sorpresa -> hueco grande.
+  // El que solo tiene ojo rapido va igual en las dos -> hueco ~0.
+  var sp = 0, ss = 0, np = 0, ns = 0, pv;
+  for (i=0;i<n;i++){
+    pv = hit[i].p;
+    if (pv === 1){ np++; sp += antOf(hit[i]); }             // bola del patron (ya legible)
+    else if (pv === 0){ ns++; ss += antOf(hit[i]); }        // bola sorpresa
+  }
+  out.nPat = np; out.nSrp = ns;                             // las de tanteo (p=2) no cuentan en ninguna
+  if (np >= LEC_MIN_PAT && ns >= LEC_MIN_SRP){
+    out.gap = (sp / np) - (ss / ns);
+    out.gapOk = true;                                       // en AZAR y ESTRATEGIA no hay patron: nunca se cumple
+  }
   var acc = {}, cnt = {}, k;
   for (i=0;i<n;i++){ k = hit[i].k; acc[k] = (acc[k] || 0) + antOf(hit[i]); cnt[k] = (cnt[k] || 0) + 1; }
   for (k in acc) out.byK.push({ k: parseInt(k, 10), a: acc[k] / cnt[k], n: cnt[k] });
@@ -2381,9 +2451,9 @@ var DIAG_TST = {
   mal:     "No est\u00e1s leyendo el plan del rival: respondes casi al azar."
 };
 var DIAG_LEC = {
-  bien:    "Mejoras seg\u00fan avanza el partido: est\u00e1s cogiendo el patr\u00f3n del rival.",
-  regular: "Empiezas y acabas igual: no est\u00e1s sacando ventaja del patr\u00f3n del rival.",
-  mal:     "Vas a peor seg\u00fan avanza el partido: te gana la lectura o te pesa el cansancio."
+  bien:    "Te apoyas en el patr\u00f3n: cuando el rival repite te adelantas, y cuando rompe te pilla. Est\u00e1s leyendo.",
+  regular: "Le sacas algo al patr\u00f3n, pero poco. F\u00edjate en lo que repite el rival mientras juegas, no al final.",
+  mal:     "Con patr\u00f3n no ganas nada: juegas a reacci\u00f3n pura, sin leer al rival."
 };
 function metCard(k, val, pct, lvl, diag){
   var col = MET_COL[lvl];
@@ -2404,12 +2474,16 @@ function metBlock(a, balls, noRead){
     h += '<div class="met-c"><div class="met-d">Pocas bolas para analizar (hacen falta al menos 4).</div></div>';
     return h + '</div>';
   }
-  var lPts = Math.round(st.lect);                          // el nivel se decide sobre el valor que se MUESTRA
-  var eL = lvlEst(st.estab), aL = lvlAnt(st.ant), lL = lvlLec(lPts);
+  var eL = lvlEst(st.estab), aL = lvlAnt(st.ant);
   var aPct = Math.round(st.ant);
   h += metCard("Anticipaci\u00f3n", aPct + "/100", aPct, aL, DIAG_ANT[aL]);
   h += metCard("Estabilidad", st.estab + "/100", st.estab, eL, DIAG_EST[eL]);
-  h += metCard("Lectura", (lPts >= 0 ? "+" : "") + lPts + " pts", 50 + lPts * 3, lL, DIAG_LEC[lL]);
+  if (st.gapOk){                                          // sin patron (azar/estrategia) o sin bolas: no se pinta
+    var gPts = Math.round(st.gap);
+    var lL = lvlLec(gPts);
+    h += metCard("Lectura del patr\u00f3n", (gPts >= 0 ? "+" : "") + gPts + " pts", gPts * 4, lL,
+                 DIAG_LEC[lL] + ' <span style="color:#999;font-weight:700;">(' + st.nPat + " patr\u00f3n / " + st.nSrp + ' sorpresa)</span>');
+  }
   var rTot = noRead ? 0 : (state.matchReadTotal || 0);
   if (rTot > 0){
     var tPct = Math.round((state.matchReadOk || 0) / rTot * 100);
