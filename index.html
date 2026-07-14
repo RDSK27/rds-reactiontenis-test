@@ -2063,6 +2063,7 @@ function launchTennisBall(shot){
                tFlight: tFlight,                      // duracion del vuelo: base de la fraccion de anticipacion
                dist: len,                             // recorrido de la bola (px)
                cued: !!shot.cued,                     // llevaba preaviso (estela)
+               fnet: (Math.abs(dy) > 0.001) ? Math.max(0, Math.min(0.99, (g.cy - o.y) / dy)) : 0.5,   // fraccion del vuelo al cruzar la RED
                k: (state.point ? state.point.hits : 0) };   // numero de golpe dentro del punto
 }
 function drawTennisBall(tb){
@@ -2229,11 +2230,17 @@ function logBall(hit, dist, hitR, rt){
   if (state.tbBalls.length >= 400) return;           // tope de seguridad por documento
   var tf = b.tFlight || 0;
   var f = (tf > 0) ? (rt / tf) : 0;                  // fraccion del vuelo recorrida al tocar
+  var fn = (b.fnet != null) ? b.fnet : 0.5;          // instante en que la bola cruza la red
+  var den = 1 - fn;
+  var ant = (den > 0.02) ? ((1 - f) / den) * 100 : 0;   // 100 = en la red | 0 = donde bota
+  ant = Math.max(0, Math.min(100, ant));
   state.tbBalls.push({
     k: b.k,                                          // golpe dentro del punto (0 = primera bola)
     rt: Math.round(rt),                              // ms
     tf: Math.round(tf),                              // ms de vuelo
-    f: Math.round(f * 1000) / 1000,                  // ANTICIPACION: 0.30 = tocada al 30% del vuelo
+    f: Math.round(f * 1000) / 1000,                  // fraccion del vuelo consumida
+    fn: Math.round(fn * 1000) / 1000,                // cruce de la red
+    a: Math.round(ant),                              // ANTICIPACION 0-100 (100 = cortada en la red)
     e: Math.round((hitR > 0 ? dist / hitR : 0) * 100) / 100,   // error de punteria (1 = borde de la zona)
     d: Math.round(b.dist || 0),                      // recorrido de la bola (px)
     c: b.cued ? 1 : 0,                               // con preaviso
@@ -2242,38 +2249,37 @@ function logBall(hit, dist, hitR, rt){
 }
 // ---------- Metricas de la bola instrumentada ----------
 // UMBRALES PROVISIONALES: revisar con datos reales de jugadores
-var TH_MAR = { good: 0.40, mid: 0.25 };   // MARGEN = % del vuelo que te SOBRA al tocar (MAS = mejor)
-                                          // 0.40 = tocas en la red o antes | 0.25 = linea de saque | menos = fondo
-var TH_EST = { good: 80, mid: 65 };       // estabilidad 0-100 (MAS = mejor)
+var TH_ANT = { good: 70, mid: 30 };       // ANTICIPACION 0-100: 100 = cortada en la RED, 46 = linea de saque (T), 0 = donde BOTA
+var TH_EST = { good: 80, mid: 65 };       // estabilidad 0-100 = 100 - desviacion de la anticipacion
 var TH_LEC = { good: 5, mid: 0 };         // mejora en puntos porcentuales (MAS = mejor)
 var MET_COL = { bien: "#2f7d4f", regular: "#c9922b", mal: "#b03a2e" };
 function ballStats(){
   var B = state.tbBalls || [], hit = [], i;
   for (i=0;i<B.length;i++) if (B[i].h && B[i].tf > 0) hit.push(B[i]);
   var n = hit.length;
-  var out = { n:n, ok:false, ant:0, mar:0, cv:0, estab:0, lect:0, byK:[] };
+  var out = { n:n, ok:false, ant:0, sd:0, estab:0, lect:0, byK:[] };
   if (n < 4) return out;                                    // con menos de 4 bolas no hay nada que decir
   out.ok = true;
+  function antOf(b){ return (b.a != null) ? b.a : 0; }      // escala 0-100 anclada a la pista
   var sum = 0;
-  for (i=0;i<n;i++) sum += hit[i].f;
+  for (i=0;i<n;i++) sum += antOf(hit[i]);
   var m = sum / n, v = 0;
-  for (i=0;i<n;i++){ var dd = hit[i].f - m; v += dd * dd; }
+  for (i=0;i<n;i++){ var dd = antOf(hit[i]) - m; v += dd * dd; }
   var sd = Math.sqrt(v / n);
-  out.ant = m;                                              // fraccion del vuelo consumida
-  out.mar = 1 - m;                                          // MARGEN: lo que te sobra
-  out.cv = (m > 0) ? (sd / m) : 0;
-  out.estab = Math.max(0, Math.min(100, Math.round(100 * (1 - out.cv))));   // ESTABILIDAD
+  out.ant = m;                                              // ANTICIPACION media (0-100)
+  out.sd = sd;
+  out.estab = Math.max(0, Math.min(100, Math.round(100 - sd)));   // ESTABILIDAD: menos dispersion = mas estable
   var half = Math.floor(n / 2), s1 = 0, s2 = 0;
-  for (i=0;i<half;i++) s1 += hit[i].f;
-  for (i=half;i<n;i++) s2 += hit[i].f;
-  out.lect = ((s1 / half) - (s2 / (n - half))) * 100;       // LECTURA: mejora 1a mitad -> 2a mitad
+  for (i=0;i<half;i++) s1 += antOf(hit[i]);
+  for (i=half;i<n;i++) s2 += antOf(hit[i]);
+  out.lect = (s2 / (n - half)) - (s1 / half);               // LECTURA: puntos de anticipacion ganados
   var acc = {}, cnt = {}, k;
-  for (i=0;i<n;i++){ k = hit[i].k; acc[k] = (acc[k] || 0) + hit[i].f; cnt[k] = (cnt[k] || 0) + 1; }
-  for (k in acc) out.byK.push({ k: parseInt(k, 10), f: acc[k] / cnt[k], n: cnt[k] });
+  for (i=0;i<n;i++){ k = hit[i].k; acc[k] = (acc[k] || 0) + antOf(hit[i]); cnt[k] = (cnt[k] || 0) + 1; }
+  for (k in acc) out.byK.push({ k: parseInt(k, 10), a: acc[k] / cnt[k], n: cnt[k] });
   out.byK.sort(function(a, b){ return a.k - b.k; });        // curva por golpe (deriva dentro del punto)
   return out;
 }
-function lvlMar(v){ return (v >= TH_MAR.good) ? "bien" : ((v >= TH_MAR.mid) ? "regular" : "mal"); }
+function lvlAnt(v){ return (v >= TH_ANT.good) ? "bien" : ((v >= TH_ANT.mid) ? "regular" : "mal"); }
 function lvlEst(v){ return (v >= TH_EST.good) ? "bien" : ((v >= TH_EST.mid) ? "regular" : "mal"); }
 function lvlLec(v){ return (v >= TH_LEC.good) ? "bien" : ((v >= TH_LEC.mid) ? "regular" : "mal"); }
 var DIAG_EST = {
@@ -2281,10 +2287,10 @@ var DIAG_EST = {
   regular: "Te mantienes, pero se te escapan bolas sueltas. Vigila los puntos largos.",
   mal:     "Alternas bolas muy buenas con enganchones: la atenci\u00f3n se te va dentro del punto."
 };
-var DIAG_MAR = {
-  bien:    "Cortas la bola pronto, cerca de la red: llegas con tiempo de sobra y decides t\u00fa.",
-  regular: "La coges hacia la l\u00ednea de saque. Llegas, pero con poco margen: sal antes.",
-  mal:     "La esperas al fondo, casi encima. Sin margen: si el rival aprieta, no llegas."
+var DIAG_ANT = {
+  bien:    "Cortas la bola cerca de la RED: te anticipas de verdad y llegas mandando t\u00fa.",
+  regular: "La coges por la l\u00ednea de saque (la T). Llegas, pero sin mandar: sal antes.",
+  mal:     "La esperas atr\u00e1s, casi en el bote. Te aseguras, pero sin margen: si el rival aprieta, no llegas."
 };
 var DIAG_LEC = {
   bien:    "Mejoras seg\u00fan avanza el partido: est\u00e1s cogiendo el patr\u00f3n del rival.",
@@ -2309,11 +2315,12 @@ function metBlock(a){
     h += '<div class="met-c"><div class="met-d">Pocas bolas para analizar (hacen falta al menos 4).</div></div>';
     return h + '</div>';
   }
-  var eL = lvlEst(st.estab), aL = lvlMar(st.mar), lL = lvlLec(st.lect);
-  var mPct = Math.round(st.mar * 100);
+  var lPts = Math.round(st.lect);                          // el nivel se decide sobre el valor que se MUESTRA
+  var eL = lvlEst(st.estab), aL = lvlAnt(st.ant), lL = lvlLec(lPts);
+  var aPct = Math.round(st.ant);
   h += metCard("Estabilidad", st.estab + "/100", st.estab, eL, DIAG_EST[eL]);
-  h += metCard("Margen", mPct + "% de margen", mPct, aL, DIAG_MAR[aL]);
-  h += metCard("Lectura", (st.lect >= 0 ? "+" : "") + Math.round(st.lect) + " pts", 50 + st.lect * 3, lL, DIAG_LEC[lL]);
+  h += metCard("Anticipaci\u00f3n", aPct + "/100", aPct, aL, DIAG_ANT[aL]);
+  h += metCard("Lectura", (lPts >= 0 ? "+" : "") + lPts + " pts", 50 + lPts * 3, lL, DIAG_LEC[lL]);
   var rTot = state.matchReadTotal || 0;
   var efi = rTot ? (Math.round((state.matchReadOk || 0) / rTot * 100) + "% en el test t\u00e1ctico  \u00b7  ") : "";
   h += '<div class="met-foot">' + efi + st.n + " bolas  \u00b7  " + (a.n ? Math.round(a.avg) : 0) + " ms de media</div>";
@@ -2342,8 +2349,8 @@ function finishTennis(){
   html += metBlock(a);          // Estabilidad / Anticipacion / Lectura + diagnostico
   var stC = ballStats();
   var canChart = (stC.ok && stC.byK.length >= 2);
-  if (canChart) html += '<div class="chart-card"><div class="chart-ttl">Margen dentro del punto</div>'
-                       + '<div class="chart-sub">% del vuelo que te sobra al tocar &#183; arriba = mejor &#183; si baja, te apagas</div>'
+  if (canChart) html += '<div class="chart-card"><div class="chart-ttl">Anticipaci&#243;n dentro del punto</div>'
+                       + '<div class="chart-sub">d&#243;nde cortas la bola, golpe a golpe &#183; si la l&#237;nea baja, te vas atr&#225;s</div>'
                        + '<canvas id="ant-chart" class="ant-chart"></canvas></div>';
   var canSave = (a.n > 0);
   html += '<div class="res-actions">';
@@ -2982,24 +2989,25 @@ function drawAntChart(id, byK){
   cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
   var c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
   c.clearRect(0, 0, W, H);
-  var padL = 30, padR = 8, padT = 8, padB = 20;
+  var padL = 40, padR = 10, padT = 8, padB = 20;
   var plotW = W - padL - padR, plotH = H - padT - padB;
   function X(i){ return padL + (n === 1 ? plotW / 2 : (i / (n - 1)) * plotW); }
-  function Y(p){ var q = Math.max(0, Math.min(1, p)); return padT + plotH - q * plotH; }   // p = MARGEN
-  var yG = Y(TH_MAR.good), yM = Y(TH_MAR.mid);
-  c.fillStyle = "rgba(47,125,79,0.10)";  c.fillRect(padL, padT, plotW, yG - padT);            // margen alto (arriba = bien)
-  c.fillStyle = "rgba(201,146,43,0.10)"; c.fillRect(padL, yG, plotW, yM - yG);                // margen justo
-  c.fillStyle = "rgba(176,58,46,0.10)";  c.fillRect(padL, yM, plotW, padT + plotH - yM);      // sin margen (abajo = mal)
+  function Y(a){ var q = Math.max(0, Math.min(100, a)); return padT + plotH - (q / 100) * plotH; }   // a = ANTICIPACION 0-100
+  var yG = Y(TH_ANT.good), yM = Y(TH_ANT.mid);
+  c.fillStyle = "rgba(47,125,79,0.10)";  c.fillRect(padL, padT, plotW, yG - padT);            // cerca de la RED (bien)
+  c.fillStyle = "rgba(201,146,43,0.10)"; c.fillRect(padL, yG, plotW, yM - yG);                // por la T
+  c.fillStyle = "rgba(176,58,46,0.10)";  c.fillRect(padL, yM, plotW, padT + plotH - yM);      // en el FONDO (mal)
   c.strokeStyle = "rgba(0,0,0,0.10)"; c.lineWidth = 1;
   c.beginPath(); c.moveTo(padL, yG); c.lineTo(padL + plotW, yG); c.stroke();
   c.beginPath(); c.moveTo(padL, yM); c.lineTo(padL + plotW, yM); c.stroke();
-  c.fillStyle = "#aaaaaa"; c.font = "9px -apple-system,Arial,sans-serif"; c.textAlign = "right";
-  c.fillText(Math.round(TH_MAR.good * 100) + "%", padL - 4, yG + 3);
-  c.fillText(Math.round(TH_MAR.mid * 100) + "%", padL - 4, yM + 3);
+  c.fillStyle = "#999999"; c.font = "bold 9px -apple-system,Arial,sans-serif"; c.textAlign = "right";
+  c.fillText("RED", padL - 5, Y(100) + 8);          // el eje Y ES tu media pista
+  c.fillText("T", padL - 5, Y(46) + 3);             // la linea de saque cae en el 46
+  c.fillText("FONDO", padL - 5, Y(0) - 2);
   c.beginPath();
-  for (var i=0;i<n;i++){ if (i === 0) c.moveTo(X(i), Y(1 - byK[i].f)); else c.lineTo(X(i), Y(1 - byK[i].f)); }
+  for (var i=0;i<n;i++){ if (i === 0) c.moveTo(X(i), Y(byK[i].a)); else c.lineTo(X(i), Y(byK[i].a)); }
   c.strokeStyle = "#c05c34"; c.lineWidth = 2; c.lineJoin = "round"; c.stroke();
-  for (var j=0;j<n;j++){ c.beginPath(); c.arc(X(j), Y(1 - byK[j].f), 3, 0, Math.PI * 2); c.fillStyle = "#c05c34"; c.fill(); }
+  for (var j=0;j<n;j++){ c.beginPath(); c.arc(X(j), Y(byK[j].a), 3, 0, Math.PI * 2); c.fillStyle = "#c05c34"; c.fill(); }
   c.fillStyle = "#aaaaaa"; c.textAlign = "center";
   var step = (n <= 12) ? 1 : Math.ceil(n / 8);
   for (var m=0;m<n;m+=step) c.fillText(String(byK[m].k + 1), X(m), H - 6);

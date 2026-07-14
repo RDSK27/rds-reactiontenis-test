@@ -2,7 +2,7 @@
 // Documento HTML / navegacion: network-first (siempre la ultima version con conexion).
 // Resto de assets same-origin + SDK de Firebase (gstatic): cache-first.
 // Las llamadas de datos a Firestore NO se cachean (persistencia offline de Firestore).
-var CACHE = "rtenis-v112";
+var CACHE = "rtenis-v113";
 var ASSETS = ["./", "./index.html", "./manifest.json", "./assets/ball.webp", "./assets/banner.webp", "./assets/icon.png"];
 
 self.addEventListener("install", function(e){
