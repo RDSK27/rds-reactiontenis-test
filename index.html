@@ -1112,7 +1112,9 @@ function tap1v1(clientX, clientY){
   var gg = computeCourtGeom();
   var b = g1.ball;
   if (!b){ var w0 = (py > gg.cy) ? 1 : 2; point1v1(w0 === 1 ? 2 : 1, "vacio"); return; }
-  var who = b.to;                                        // golpea SIEMPRE el destinatario de la bola
+  var who = b.to;                                        // la bola solo la puede golpear su destinatario
+  var tapper = (py > gg.cy) ? 1 : 2;                     // mitad de pista donde se ha tocado
+  if (tapper !== who) return;                            // toque en el campo que no toca: se ignora (ni punto ni fallo)
   var opp = (who === 1) ? 2 : 1;
   var d = Math.hypot(px - b.x, py - b.y);
   if (d <= b.r * TB_HIT_FACTOR){
@@ -3094,10 +3096,35 @@ function cmpFree(a, b){
   if (ha !== hb) return hb - ha;                 // mas bolas/toques = mejor
   return (a.avgRT||0) - (b.avgRT||0);            // empate: reaccion mas rapida
 }
+function rkDiagText(){                       // TEMPORAL: diagnostico del ranking
+  var src = "global", recs = allScores;
+  if (!recs){
+    src = "local"; recs = [];
+    try {
+      for (var i=0;i<localStorage.length;i++){
+        var k = localStorage.key(i);
+        if (k.indexOf("rtenis_lb_") === 0){
+          var l = JSON.parse(localStorage.getItem(k) || "[]");
+          for (var j=0;j<l.length;j++) recs.push(l[j]);
+        }
+      }
+    } catch(e){}
+  }
+  var map = {}, n;
+  for (n=0;n<recs.length;n++){
+    var r = recs[n];
+    var kk = r.mode + "/" + r.count + "/" + (r.matchMode || "-");
+    map[kk] = (map[kk] || 0) + 1;
+  }
+  var parts = [];
+  for (var key in map) parts.push(key + " x" + map[key]);
+  return "[" + src + "] filtro " + rankFilter.mode + "/" + rankFilter.count + "/" + rankFilter.matchMode +
+         " | total " + recs.length + " | " + (parts.length ? parts.join("  \u00b7  ") : "sin registros");
+}
 function renderRankList(list, host, mode){
   list = filterRepeated(list);
   if (!list.length){
-    host.innerHTML = '<div class="rank-full-empty">Sin resultados</div>';
+    host.innerHTML = '<div class="rank-full-empty">Sin resultados<div style="font-size:10px;color:#999;font-weight:600;margin-top:8px;line-height:1.5;word-break:break-word;">' + escapeHtml(rkDiagText()) + '</div></div>';
     return;
   }
   var isLim = (mode === "limite");
