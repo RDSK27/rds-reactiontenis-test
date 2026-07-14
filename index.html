@@ -42,7 +42,7 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:160px;backg
 }
 /* HEADER (negro con banner + subtitulo + filo rojo) */
 header{width:100%;flex-shrink:0;background:linear-gradient(rgba(0,0,0,0.05),rgba(0,0,0,0.05)),var(--ball);background-size:cover;background-position:center;border-bottom:4px solid #c05c34;display:flex;flex-direction:column;align-items:center;padding:0;}
-header img{width:100%;height:auto;display:block;margin-bottom:0;}
+header img{width:100%;height:auto;max-height:22vh;object-fit:cover;display:block;margin-bottom:0;}
 .subtitle{display:block;width:100%;box-sizing:border-box;font-size:0.58rem;letter-spacing:0.14em;color:#333333;text-transform:none;padding:8px 0 8px;text-align:center;background:transparent;}
 .home-title{
   font-weight:900;font-size:30px;line-height:1;letter-spacing:2px;
@@ -190,7 +190,7 @@ header img{width:100%;height:auto;display:block;margin-bottom:0;}
 .chart-ttl{font-size:11px;font-weight:900;letter-spacing:0.11em;text-transform:uppercase;color:#777;text-align:center;margin:0 0 2px;}
 .chart-sub{font-size:10px;font-weight:600;color:#aaaaaa;text-align:center;margin:0 0 3px;letter-spacing:0.02em;}
 .rt-chart{width:100%;height:112px;display:block;}
-.ant-chart{width:100%;height:116px;display:block;}
+.ant-chart{width:100%;height:92px;display:block;}
 #play{display:block;width:100%;height:100%;touch-action:none;}
 .play-wrap{display:block;width:100%;flex:1 1 auto;min-height:0;box-sizing:border-box;border:3px solid #111111;position:relative;}
 #screen-game.lim .play-wrap{border-bottom-color:var(--rds-red);}
@@ -210,6 +210,35 @@ header img{width:100%;height:auto;display:block;margin-bottom:0;}
 .pause-overlay{position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);}
 .pause-box{background:#fff;border:3px solid var(--rds-red);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;align-items:center;box-sizing:border-box;width:min(90%,340px);min-width:190px;}
 #rival-section select:disabled{background:#eeeeee !important;border-color:#cccccc !important;color:#bbbbbb !important;opacity:1;}
+.emo-overlay{position:absolute;inset:0;z-index:14;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);}
+.emo-box{background:#fff;border:3px solid var(--rds-red);border-radius:12px;padding:14px 14px 10px;display:flex;flex-direction:column;gap:8px;align-items:center;box-sizing:border-box;}
+.emo-ttl{font-weight:900;font-size:15px;letter-spacing:0.06em;text-transform:uppercase;color:var(--rds-red);text-align:center;}
+.emo-plot{position:relative;width:min(74vw,290px);height:min(74vw,290px);border:1px solid #d8d8d8;border-radius:8px;background:#fcfcfc;touch-action:none;cursor:crosshair;}
+.emo-plot .ax{position:absolute;background:#000000;}
+.emo-plot .ax.h{left:0;right:0;top:50%;height:1px;}
+.emo-plot .ax.v{top:0;bottom:0;left:50%;width:1px;}
+.emo-lbl{position:absolute;font-size:8.5px;font-weight:800;letter-spacing:0.08em;color:#000000;white-space:nowrap;pointer-events:none;background:#fcfcfc;padding:2px 5px;}
+.emo-lbl.top{top:5px;left:50%;transform:translateX(-50%);}
+.emo-lbl.bot{bottom:5px;left:50%;transform:translateX(-50%);}
+.emo-lbl.lft{left:3px;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;font-weight:700;padding:5px 2px;}
+.emo-lbl.rgt{right:3px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font-weight:700;padding:5px 2px;}
+.emo-q{position:absolute;font-size:9.5px;font-weight:800;letter-spacing:0.1em;color:#e4e4e4;pointer-events:none;}
+.emo-q{transform:translate(-50%,-50%);}
+.emo-q.tl{top:25%;left:25%;}
+.emo-q.tr{top:25%;left:75%;}
+.emo-q.bl{top:75%;left:25%;}
+.emo-q.br{top:75%;left:75%;}
+.emo-dot{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--rds-red);border:2px solid #ffffff;display:none;pointer-events:none;}
+.emo-hint{font-size:10px;font-weight:700;letter-spacing:0.06em;color:#999999;text-transform:uppercase;}
+.emo-res-cv{width:min(74vw,290px);height:min(74vw,290px);display:block;}
+.emo1v1-ov{position:absolute;inset:0;z-index:14;display:none;flex-direction:column;background:rgba(0,0,0,0.55);}
+.emo1v1-half{flex:1 1 50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:0;}
+.emo1v1-half.rot{transform:rotate(180deg);}
+.emo1v1-half.done{opacity:0.42;}
+.emo1v1-ttl{font-weight:900;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;color:#ffffff;}
+.emo1v1-plot{width:min(52vw,205px);height:min(52vw,205px);}
+.emo-close{width:100%;padding:9px 6px;font-size:12.5px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;background:var(--rds-red);color:#fff;border:2px solid var(--rds-red);border-radius:6px;cursor:pointer;}
+.res-emo-btn{background:#fff;color:#222;border:2px solid #222 !important;}
 .pause-title{font-weight:900;font-size:20px;letter-spacing:4px;color:var(--rds-red);margin-bottom:4px;}
 .pause-btn{width:100%;padding:11px 16px;border:none;border-radius:8px;background:var(--rds-red);color:#fff;font-weight:800;font-size:14px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
 .pause-btn.pause-alt{background:#555;}
@@ -330,7 +359,7 @@ table.rk tr.top3 td{background:#f7efe7;}
   <!-- LOGO BANNER -->
   <header>
     <div style="background:transparent;width:100%;display:flex;justify-content:center;">
-    <img src="assets/banner.webp" alt="RDS Psicologia Deportiva">
+    <img src="assets/banner.webp" alt="" onerror="this.style.display='none';">
     </div>
     <div class="subtitle">design and development by RDS</div>
   </header>
@@ -364,14 +393,48 @@ table.rk tr.top3 td{background:#f7efe7;}
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div></div>
       <button class="btn rank" id="btn-goranking">&#127942; RANKING</button>
       </div>
-      <div class="app-ver">rtenis-v128</div>
+      <div class="app-ver">rtenis-v138</div>
     </div>
   </section>
 
   <!-- GAME -->
   <section id="screen-1v1" class="screen">
     <div class="play-wrap" id="wrap-1v1"><canvas id="play1v1" style="display:block;width:100%;height:100%;"></canvas>
-      <div class="pt1v1" id="pt1v1-2" style="display:none;transform:rotate(180deg);top:6%;">
+      <div class="emo1v1-ov" id="emo1v1-ov">
+      <div class="emo1v1-half rot" id="emo1v1-half-2">
+        <div class="emo1v1-ttl" id="emo1v1-ttl-2">&#191;C&#243;mo est&#225;s?</div>
+        <div class="emo-plot emo1v1-plot" id="emo1v1-plot-2">
+          <div class="ax h"></div>
+          <div class="ax v"></div>
+          <div class="emo-lbl top">ACTIVACI&#211;N ALTA</div>
+          <div class="emo-lbl bot">ACTIVACI&#211;N BAJA</div>
+          <div class="emo-lbl lft">DESAGRADABLE</div>
+          <div class="emo-lbl rgt">AGRADABLE</div>
+          <div class="emo-q tl">TENSO</div>
+          <div class="emo-q tr">EN&#201;RGICO</div>
+          <div class="emo-q bl">HUNDIDO</div>
+          <div class="emo-q br">SERENO</div>
+          <div class="emo-dot" id="emo1v1-dot-2"></div>
+        </div>
+      </div>
+      <div class="emo1v1-half" id="emo1v1-half-1">
+        <div class="emo1v1-ttl" id="emo1v1-ttl-1">&#191;C&#243;mo est&#225;s?</div>
+        <div class="emo-plot emo1v1-plot" id="emo1v1-plot-1">
+          <div class="ax h"></div>
+          <div class="ax v"></div>
+          <div class="emo-lbl top">ACTIVACI&#211;N ALTA</div>
+          <div class="emo-lbl bot">ACTIVACI&#211;N BAJA</div>
+          <div class="emo-lbl lft">DESAGRADABLE</div>
+          <div class="emo-lbl rgt">AGRADABLE</div>
+          <div class="emo-q tl">TENSO</div>
+          <div class="emo-q tr">EN&#201;RGICO</div>
+          <div class="emo-q bl">HUNDIDO</div>
+          <div class="emo-q br">SERENO</div>
+          <div class="emo-dot" id="emo1v1-dot-1"></div>
+        </div>
+      </div>
+    </div>
+    <div class="pt1v1" id="pt1v1-2" style="display:none;transform:rotate(180deg);top:6%;">
         <div class="pt1v1-res" id="pt1v1-res-2">-</div>
         <div class="pt1v1-sc" id="pt1v1-sc-2">0 - 0</div>
         <button class="pt1v1-btn" id="pt1v1-go-2" onclick="ready1v1(2)">Seguir</button>
@@ -415,6 +478,25 @@ table.rk tr.top3 td{background:#f7efe7;}
     </div>
   </section>
   <section id="screen-game" class="screen">
+    <div class="emo-overlay" id="emo-overlay">
+      <div class="emo-box">
+        <div class="emo-ttl" id="emo-ttl">&#191;C&#243;mo est&#225;s?</div>
+        <div class="emo-plot" id="emo-plot">
+          <div class="ax h"></div>
+          <div class="ax v"></div>
+          <div class="emo-lbl top">ACTIVACI&#211;N ALTA</div>
+          <div class="emo-lbl bot">ACTIVACI&#211;N BAJA</div>
+          <div class="emo-lbl lft">DESAGRADABLE</div>
+          <div class="emo-lbl rgt">AGRADABLE</div>
+          <div class="emo-q tl">TENSO</div>
+          <div class="emo-q tr">EN&#201;RGICO</div>
+          <div class="emo-q bl">HUNDIDO</div>
+          <div class="emo-q br">SERENO</div>
+          <div class="emo-dot" id="emo-dot"></div>
+        </div>
+        <div class="emo-hint">Toca donde est&#225;s</div>
+      </div>
+    </div>
     <div class="pause-overlay" id="mm-overlay" style="display:none;">
       <div class="pause-box" style="width:min(90%,340px);">
         <div class="pause-title">MODO DE JUEGO</div>
@@ -474,6 +556,13 @@ table.rk tr.top3 td{background:#f7efe7;}
 
   <!-- RESULTS -->
   <section id="screen-results" class="screen">
+    <div class="emo-overlay" id="emo-res-ov">
+      <div class="emo-box">
+        <div class="emo-ttl">Tu partido, juego a juego</div>
+        <canvas id="emo-res-cv" class="emo-res-cv"></canvas>
+        <button class="emo-close" id="emo-close">Cerrar</button>
+      </div>
+    </div>
     <div class="pad" id="results-pad"></div>
     <div class="results-actions">
       <button class="game-ctrl-btn" onclick="goHome()">&#8592; Inicio</button>
@@ -779,6 +868,7 @@ function prepare1v1(){
   g1.ready = {1:false, 2:false};
   g1.picked = {1:false, 2:false};
   g1.balls = {1:[], 2:[]};                 // instrumentacion bola a bola de cada jugador
+  g1.emo = {1:[], 2:[]};                   // circunplejo juego a juego de cada jugador
   g1.k = 0;
   p1v1[1]._side = null; p1v1[2]._side = null;
   p1v1[1]._n = 0; p1v1[2]._n = 0;
@@ -815,7 +905,7 @@ function readyStart1v1(n){
   g1.ready[n] = true;
   var go = $("pt1v1-go-" + n);
   if (go){ go.textContent = "Listo"; go.classList.add("ok"); }
-  if (g1.ready[1] && g1.ready[2]) begin1v1();
+  if (g1.ready[1] && g1.ready[2]){ hidePt1v1(); askEmo1v1(null, null, begin1v1); }   // como llegan los dos
 }
 function markPicked1v1(n){
   if (!g1.picked) g1.picked = {1:false, 2:false};
@@ -968,7 +1058,8 @@ function logBall1v1(pl, hit, dist, hitR, rt){
     d: Math.round(b.dist || 0),
     c: 0,
     h: hit ? 1 : 0,
-    p: (b.p != null) ? b.p : 2
+    p: (b.p != null) ? b.p : 2,
+    j: ((g1.emo && g1.emo[pl]) ? g1.emo[pl].length : 0)   // juego al que pertenece la bola
   });
 }
 function hit1v1(pl, px, py){
@@ -1007,9 +1098,12 @@ function point1v1(winner, why, delay){
   g1.ready = {1:false, 2:false};
   g1.ev = "point";
   award1v1(winner);
+  var closed = (g1.ev === "game" || g1.ev === "set" || g1.matchOver);
   var showIt = function(){
     g1.hawk = null;
-    if (g1.matchOver) showEnd1v1(); else showPt1v1(winner, why);
+    var go = function(){ if (g1.matchOver) showEnd1v1(); else showPt1v1(winner, why); };
+    if (closed) askEmo1v1((winner === 1), (winner === 2), go);   // la emocion antes de las cajas
+    else go();
   };
   if (delay){ if (g1.hawkTimer) clearTimeout(g1.hawkTimer); g1.hawkTimer = setTimeout(showIt, delay); }
   else showIt();
@@ -1046,6 +1140,57 @@ function winSet1v1(w){
   if (d1v1.mode === "extremo"){ g1.matchOver = true; g1.winner = w; return; }  // SET: acaba al ganar un set
   if (g1.sets[w] >= 2){ g1.matchOver = true; g1.winner = w; }                  // PARTIDO: al mejor de 3
 }
+function askEmo1v1(won1, won2, cb){
+  var ov = $("emo1v1-ov");
+  if (!ov){ cb(); return; }
+  if (!g1.emo) g1.emo = {1:[], 2:[]};
+  var first = (g1.emo[1].length === 0);
+  var pend = {1:true, 2:true}, hs = [], n;
+  for (n = 1; n <= 2; n++){
+    var tt = $("emo1v1-ttl-" + n); if (tt) tt.textContent = first ? "\u00bfC\u00f3mo llegas?" : "\u00bfC\u00f3mo est\u00e1s?";
+    var dd = $("emo1v1-dot-" + n); if (dd) dd.style.display = "none";
+    var hh = $("emo1v1-half-" + n); if (hh) hh.classList.remove("done");
+  }
+  ov.style.display = "flex";
+  function fin(){
+    ov.style.display = "none";
+    for (var i = 0; i < hs.length; i++){
+      hs[i][0].removeEventListener("touchstart", hs[i][1]);
+      hs[i][0].removeEventListener("mousedown", hs[i][2]);
+    }
+    cb();
+  }
+  function bind(pl, won){
+    var plot = $("emo1v1-plot-" + pl), dot = $("emo1v1-dot-" + pl), half = $("emo1v1-half-" + pl);
+    if (!plot) return;
+    var rot = (pl === 2);                       // la mitad del jugador 2 esta girada 180 grados
+    function pick(cx, cy){
+      if (!pend[pl]) return;
+      pend[pl] = false;
+      var r = plot.getBoundingClientRect();
+      var x = (cx - r.left) / r.width, y = (cy - r.top) / r.height;
+      if (rot){ x = 1 - x; y = 1 - y; }         // ... asi que su toque va invertido
+      x = Math.max(0, Math.min(1, x));
+      y = Math.max(0, Math.min(1, y));
+      if (dot){ dot.style.left = (x * r.width) + "px"; dot.style.top = (y * r.height) + "px"; dot.style.display = "block"; }
+      g1.emo[pl].push({
+        g: g1.emo[pl].length,
+        v: Math.round((x * 2 - 1) * 100) / 100,
+        a: Math.round((1 - y * 2) * 100) / 100,
+        w: (won === true) ? 1 : ((won === false) ? 0 : null)
+      });
+      if (half) half.classList.add("done");
+      if (!pend[1] && !pend[2]) setTimeout(fin, EMO_SHOW_MS);
+    }
+    function onT(e){ e.preventDefault(); var t0 = e.changedTouches[0]; pick(t0.clientX, t0.clientY); }
+    function onM(e){ pick(e.clientX, e.clientY); }
+    plot.addEventListener("touchstart", onT, { passive:false });
+    plot.addEventListener("mousedown", onM);
+    hs.push([plot, onT, onM]);
+  }
+  bind(1, won1);
+  bind(2, won2);
+}
 function agg1v1(pl){
   var B = (g1.balls && g1.balls[pl]) ? g1.balls[pl] : [], n = 0, sum = 0;
   for (var i = 0; i < B.length; i++){ if (B[i].h){ n++; sum += B[i].rt; } }
@@ -1070,10 +1215,15 @@ function render1v1Results(pl){
   var canChart = (stC.ok && stC.byK.length >= 2);
   if (canChart) html += '<div class="chart-card"><div class="chart-ttl">Anticipaci&#243;n dentro del punto</div>'
                        + '<canvas id="ant-chart" class="ant-chart"></canvas></div>';
+  var emo = (g1.emo && g1.emo[pl]) ? g1.emo[pl] : [];
+  if (emo.length >= 2) html += '<div class="res-actions" style="margin-top:6px;">'
+                             + '<button id="res-emo" class="res-emo-btn">MAPA EMOCIONAL</button></div>';
   html += '<div class="res-actions">';
   html += '<button id="res-swap" class="res-rank-btn">JUGADOR ' + opp + '</button>';   // ni guardar ni ranking: aqui no pintan nada
   html += '</div>';
   $("results-pad").innerHTML = html;
+  var em = $("res-emo");
+  if (em) em.addEventListener("click", function(){ openEmoMap(emo); });
   var sw = $("res-swap");
   if (sw) sw.addEventListener("click", function(){ render1v1Results(opp); });
   if (canChart) setTimeout(function(){ drawAntChart("ant-chart", stC.byK); }, 80);
@@ -1676,6 +1826,7 @@ function startGame(){
   state.blackCount = 0;
   state.balls = [];
   state.tbMode = false; state.tb = null; state.paused = false;
+  state.emo = [];                                  // registro emocional del partido (no se guarda en Firestore)
   state.tapTimes = [];
   state.fails = 0;
   state.maxLives = (state.mode === "normal") ? 3 : 5;
@@ -2312,6 +2463,60 @@ function endMatch(who){
   state.matchWinner = who;
   state.lastEvent = "match"; state.lastWinner = who;
 }
+// ---------- Circunplejo: valencia (x) y activacion (y), un toque ----------
+// Se guarda el punto exacto (-1..1), no una casilla. No va a Firestore: vive en el partido.
+var EMO_SHOW_MS = 260;        // lo que se ve el punto marcado antes de continuar
+function askEmo(won, cb){
+  var ov = $("emo-overlay"), plot = $("emo-plot"), dot = $("emo-dot"), ttl = $("emo-ttl");
+  if (!ov || !plot){ cb(); return; }
+  if (!state.emo) state.emo = [];
+  var first = (state.emo.length === 0);
+  if (ttl) ttl.textContent = first ? "\u00bfC\u00f3mo llegas?" : "\u00bfC\u00f3mo est\u00e1s?";
+  if (dot) dot.style.display = "none";
+  ov.style.display = "flex";
+  var done = false;
+  function pick(cx, cy){
+    if (done) return;
+    done = true;
+    var r = plot.getBoundingClientRect();
+    var x = (cx - r.left) / r.width, y = (cy - r.top) / r.height;
+    x = Math.max(0, Math.min(1, x));
+    y = Math.max(0, Math.min(1, y));
+    if (dot){ dot.style.left = (x * r.width) + "px"; dot.style.top = (y * r.height) + "px"; dot.style.display = "block"; }
+    state.emo.push({
+      g: state.emo.length,                    // 0 = antes de empezar, 1 = tras el juego 1, ...
+      v: Math.round((x * 2 - 1) * 100) / 100,  // valencia: -1 desagradable, +1 agradable
+      a: Math.round((1 - y * 2) * 100) / 100,  // activacion: +1 alta, -1 baja
+      w: (won === true) ? 1 : ((won === false) ? 0 : null)   // juego ganado / perdido / inicio
+    });
+    setTimeout(function(){
+      ov.style.display = "none";
+      plot.removeEventListener("touchstart", onT);
+      plot.removeEventListener("mousedown", onM);
+      cb();
+    }, EMO_SHOW_MS);
+  }
+  function onT(e){ e.preventDefault(); var t0 = e.changedTouches[0]; pick(t0.clientX, t0.clientY); }
+  function onM(e){ pick(e.clientX, e.clientY); }
+  plot.addEventListener("touchstart", onT, { passive:false });
+  plot.addEventListener("mousedown", onM);
+}
+function afterPointFlow(){
+  if (state.matchOver){
+    var mmF = state.matchMode || "azar";
+    if (state.mode !== "normal" && mmF !== "azar"){   // ultimo juego con lectura: obligatorio responder antes de resultados
+      state.pendingFinish = true;
+      showContinueBtn(pointStakes());
+      maybeShowRead();
+    } else {
+      hideContinueBtn();
+      state.gapTimer = setTimeout(finishTennis, 1800);
+    }
+  } else {
+    showContinueBtn(pointStakes());
+    maybeShowRead();
+  }
+}
 function afterPoint(pointWon){
   tbUpdateHud();
   var ev = state.lastEvent, mine = (state.lastWinner === "me");
@@ -2330,20 +2535,9 @@ function afterPoint(pointWon){
     mid = gameScoreStr(); midCol = "#333333";
   }
   showPointResult(word, mid, scoreLine(), green, midCol);
-  if (state.matchOver){
-    var mmF = state.matchMode || "azar";
-    if (state.mode !== "normal" && mmF !== "azar"){   // ultimo juego con lectura: obligatorio responder antes de resultados
-      state.pendingFinish = true;
-      showContinueBtn(pointStakes());
-      maybeShowRead();
-    } else {
-      hideContinueBtn();
-      state.gapTimer = setTimeout(finishTennis, 1800);
-    }
-  } else {
-    showContinueBtn(pointStakes());
-    maybeShowRead();
-  }
+  var closed = (ev === "game" || ev === "set" || ev === "match" || state.matchOver);
+  if (closed) askEmo(mine, afterPointFlow);   // la emocion ANTES del "?": el test no debe contaminarla
+  else afterPointFlow();
 }
 function matchSummaryStr(){
   if (state.mode === "normal") return "Juego para " + (state.matchWinner === "me" ? "ti" : "el rival");
@@ -2383,7 +2577,8 @@ function logBall(hit, dist, hitR, rt){
     d: Math.round(b.dist || 0),                      // recorrido de la bola (px)
     c: b.cued ? 1 : 0,                               // con preaviso
     h: hit ? 1 : 0,                                  // tocada / fallada
-    p: (b.p != null) ? b.p : 2                       // 0 = sorpresa | 1 = patron | 2 = tanteo / sin patron
+    p: (b.p != null) ? b.p : 2,                      // 0 = sorpresa | 1 = patron | 2 = tanteo / sin patron
+    j: (state.emo ? state.emo.length : 0)            // juego al que pertenece la bola
   });
 }
 // ---------- Metricas de la bola instrumentada ----------
@@ -2395,6 +2590,7 @@ var LEC_MIN_PAT = 6;                      // bolas de patron minimas para poder 
 var LEC_MIN_SRP = 3;                      // bolas sorpresa minimas
 var TH_TST = { good: 70, mid: 40 };       // acierto del test "?" (azar = 25% con 4 opciones)
 var MET_COL = { bien: "#2f7d4f", regular: "#c9922b", mal: "#b03a2e" };
+function antOf(b){ return (b.a != null) ? b.a : 0; }        // anticipacion 0-100, anclada a la pista
 function ballStats(balls){
   var B = balls || state.tbBalls || [], hit = [], i;   // sin argumento: motor normal
   for (i=0;i<B.length;i++) if (B[i].h && B[i].tf > 0) hit.push(B[i]);
@@ -2402,7 +2598,6 @@ function ballStats(balls){
   var out = { n:n, ok:false, ant:0, sd:0, estab:0, byK:[], nPat:0, nSrp:0, gap:0, gapOk:false };
   if (n < 4) return out;                                    // con menos de 4 bolas no hay nada que decir
   out.ok = true;
-  function antOf(b){ return (b.a != null) ? b.a : 0; }      // escala 0-100 anclada a la pista
   var sum = 0;
   for (i=0;i<n;i++) sum += antOf(hit[i]);
   var m = sum / n, v = 0;
@@ -2467,6 +2662,83 @@ function metCard(k, val, pct, lvl, diag){
   h += '</div>';
   return h;
 }
+var EMO_COL = { win:"#2f7d4f", lose:"#b03a2e", none:"#8a8a8a" };
+function drawEmoMap(id, emo){
+  var cv = document.getElementById(id);
+  if (!cv || !emo || !emo.length) return;
+  var n = emo.length, i;
+  var dpr = window.devicePixelRatio || 1;
+  var W = cv.clientWidth || 290, H = cv.clientHeight || 290;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  var c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, W, H);
+  var pad = 14;
+  var x0 = pad, y0 = pad, w = W - pad * 2, h = H - pad * 2;
+  var cx = x0 + w / 2, cy = y0 + h / 2;
+  function X(v){ return cx + Math.max(-1, Math.min(1, v)) * (w / 2 - 10); }
+  function Y(a){ return cy - Math.max(-1, Math.min(1, a)) * (h / 2 - 10); }
+  var FONT = "-apple-system,Arial,sans-serif";
+  c.fillStyle = "#fcfcfc"; c.fillRect(x0, y0, w, h);
+  c.strokeStyle = "#d8d8d8"; c.lineWidth = 1; c.strokeRect(x0 + 0.5, y0 + 0.5, w - 1, h - 1);
+  c.fillStyle = "#e4e4e4"; c.font = "bold 9px " + FONT; c.textAlign = "center"; c.textBaseline = "middle";
+  c.fillText("TENSO",    x0 + w * 0.25, y0 + h * 0.25);
+  c.fillText("EN\u00c9RGICO", x0 + w * 0.75, y0 + h * 0.25);
+  c.fillText("HUNDIDO",  x0 + w * 0.25, y0 + h * 0.75);
+  c.fillText("SERENO",   x0 + w * 0.75, y0 + h * 0.75);
+  c.strokeStyle = "#000000"; c.lineWidth = 1;
+  c.beginPath(); c.moveTo(x0, cy); c.lineTo(x0 + w, cy); c.moveTo(cx, y0); c.lineTo(cx, y0 + h); c.stroke();
+  // etiquetas de los ejes, con el fondo detras para cortar la linea (igual que en el overlay del juego)
+  function lbl(txt, px, py, rot){
+    c.save();
+    c.translate(px, py);
+    if (rot) c.rotate(rot);
+    c.font = "bold 8px " + FONT; c.textAlign = "center"; c.textBaseline = "middle";
+    var tw = c.measureText(txt).width;
+    c.fillStyle = "#fcfcfc"; c.fillRect(-tw / 2 - 3, -6, tw + 6, 12);
+    c.fillStyle = "#000000"; c.fillText(txt, 0, 0);
+    c.restore();
+  }
+  lbl("ACTIVACI\u00d3N ALTA", cx, y0 + 8, 0);
+  lbl("ACTIVACI\u00d3N BAJA", cx, y0 + h - 8, 0);
+  lbl("DESAGRADABLE", x0 + 8, cy, -Math.PI / 2);
+  lbl("AGRADABLE",    x0 + w - 8, cy, Math.PI / 2);
+  // manchas: media del partido (pelota), media de los juegos ganados (verde) y de los perdidos (rojo)
+  function mancha(sel, rad, fill, line){
+    var sv = 0, sa = 0, q = 0, z;
+    for (z=0;z<n;z++){ if (!sel(emo[z])) continue; sv += emo[z].v; sa += emo[z].a; q++; }
+    if (!q) return;
+    var px = X(sv / q), py = Y(sa / q);
+    c.beginPath(); c.arc(px, py, rad, 0, Math.PI * 2); c.fillStyle = fill; c.fill();
+    c.beginPath(); c.arc(px, py, rad, 0, Math.PI * 2); c.strokeStyle = line; c.lineWidth = 1; c.stroke();
+  }
+  mancha(function(){ return true; },      26, "rgba(207,224,0,0.35)",  "rgba(169,189,0,0.55)");   // todo el partido
+  mancha(function(e){ return e.w === 0; }, 17, "rgba(176,58,46,0.30)",  "rgba(176,58,46,0.55)");   // juegos perdidos
+  mancha(function(e){ return e.w === 1; }, 17, "rgba(47,125,79,0.30)",  "rgba(47,125,79,0.55)");   // juegos ganados
+  // trayectoria
+  if (n > 1){
+    c.beginPath();
+    for (i=0;i<n;i++){ if (i === 0) c.moveTo(X(emo[i].v), Y(emo[i].a)); else c.lineTo(X(emo[i].v), Y(emo[i].a)); }
+    c.strokeStyle = "rgba(0,0,0,0.30)"; c.lineWidth = 1.5; c.lineJoin = "round"; c.stroke();
+  }
+  // circulos numerados: verde = juego ganado, rojo = perdido, gris = antes de empezar
+  for (i=0;i<n;i++){
+    var col = (emo[i].w === 1) ? EMO_COL.win : ((emo[i].w === 0) ? EMO_COL.lose : EMO_COL.none);
+    var px = X(emo[i].v), py = Y(emo[i].a);
+    c.beginPath(); c.arc(px, py, 9.5, 0, Math.PI * 2);
+    c.fillStyle = col; c.fill();
+    c.strokeStyle = "#ffffff"; c.lineWidth = 1.5; c.stroke();
+    c.fillStyle = "#ffffff"; c.font = "bold 9px " + FONT; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillText(String(emo[i].g), px, py);
+  }
+}
+function openEmoMap(arr){
+  var emo = arr || state.emo || [];
+  var ov = $("emo-res-ov"); if (!ov) return;
+  ov.style.display = "flex";
+  setTimeout(function(){ drawEmoMap("emo-res-cv", emo); }, 40);
+  var cl = $("emo-close");
+  if (cl) cl.onclick = function(){ ov.style.display = "none"; };
+}
 function metBlock(a, balls, noRead){
   var st = ballStats(balls);
   var h = '<div class="met">';
@@ -2518,6 +2790,9 @@ function finishTennis(){
   var canChart = (stC.ok && stC.byK.length >= 2);
   if (canChart) html += '<div class="chart-card"><div class="chart-ttl">Anticipaci&#243;n dentro del punto</div>'
                        + '<canvas id="ant-chart" class="ant-chart"></canvas></div>';
+  var hasEmo = (state.emo && state.emo.length >= 2);
+  if (hasEmo) html += '<div class="res-actions" style="margin-top:6px;">'
+                    + '<button id="res-emo" class="res-emo-btn">MAPA EMOCIONAL</button></div>';
   var isJuego = (state.mode === "normal");            // JUEGO no tiene pestana en el ranking
   var canSave = (a.n > 0) && !isJuego;
   html += '<div class="res-actions">';
@@ -2526,6 +2801,7 @@ function finishTennis(){
   html += '</div>';
   html += '<div id="save-feedback" class="tag-line"></div>';
   $("results-pad").innerHTML = html;
+  var emBtn = $("res-emo"); if (emBtn) emBtn.addEventListener("click", function(){ openEmoMap(); });
   var rkBtn = $("res-ranking"); if (rkBtn) rkBtn.addEventListener("click", openRanking);
   var saveBtn = $("res-save");
   if (saveBtn && canSave){
@@ -3637,7 +3913,7 @@ function pickMatchMode(v){
   var ov = $("mm-overlay"); if (ov) ov.style.display = "none";
   state.paused = false;
   initRival();                 // plan del rival segun el modo elegido
-  startCountdown();
+  askEmo(null, startCountdown);   // punto 0: como llegas
 }
 function showRivalSetup(){
   state.paused = true;
@@ -3667,7 +3943,7 @@ function pauseGame(){
 }
 function resumeGame(){
   var ov = $("pause-overlay"); if (ov) ov.style.display = "none";
-  if (state.rivalSetup){ state.rivalSetup = false; state.paused = false; startCountdown(); return; }
+  if (state.rivalSetup){ state.rivalSetup = false; state.paused = false; askEmo(null, startCountdown); return; }   // punto 0: como llegas
   if (!state.paused) return;
   state.paused = false;
   state.active = true;
