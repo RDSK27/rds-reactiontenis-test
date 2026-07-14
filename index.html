@@ -187,14 +187,14 @@ header img{width:100%;height:auto;display:block;margin-bottom:0;}
 .chart-ttl{font-size:11px;font-weight:900;letter-spacing:0.11em;text-transform:uppercase;color:#777;text-align:center;margin:0 0 2px;}
 .chart-sub{font-size:10px;font-weight:600;color:#aaaaaa;text-align:center;margin:0 0 3px;letter-spacing:0.02em;}
 .rt-chart{width:100%;height:112px;display:block;}
-.ant-chart{width:100%;height:150px;display:block;}
+.ant-chart{width:100%;height:116px;display:block;}
 #play{display:block;width:100%;height:100%;touch-action:none;}
 .play-wrap{display:block;width:100%;flex:1 1 auto;min-height:0;box-sizing:border-box;border:3px solid #111111;position:relative;}
 #screen-game.lim .play-wrap{border-bottom-color:var(--rds-red);}
 .center-msg{position:absolute;inset:0;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;z-index:4;pointer-events:none;text-align:center;}
 .center-msg > span{font-weight:900;font-size:30px;letter-spacing:1px;color:var(--rds-red);background:rgba(255,255,255,.7);padding:12px 22px;border-radius:8px;}
 #stakes-line{font-weight:900;font-size:20px;letter-spacing:0.5px;padding:8px 18px;border-radius:20px;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,0.35);}
-#btn-seguir{pointer-events:auto;cursor:pointer;border:none;color:#fff;font-weight:900;font-size:18px;letter-spacing:0.12em;text-transform:uppercase;padding:14px 40px;border-radius:8px;background:radial-gradient(circle at 35% 30%, #e58a52 0%, #c05c34 45%, #7a3418 100%);box-shadow:inset 0 2px 4px rgba(255,255,255,0.28), inset 0 -3px 6px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.4);}
+#btn-seguir{pointer-events:auto;cursor:pointer;border:none;color:#2a3300;font-weight:900;font-size:18px;letter-spacing:0.12em;text-transform:uppercase;padding:14px 40px;border-radius:8px;background:radial-gradient(circle at 35% 30%, #eaf657 0%, #cfe000 50%, #a9bd00 100%);box-shadow:inset 0 2px 4px rgba(255,255,255,0.45), inset 0 -3px 6px rgba(0,0,0,0.30), 0 4px 10px rgba(0,0,0,0.4);}
 #btn-seguir:active{box-shadow:inset 0 3px 7px rgba(0,0,0,0.6);}
 #btn-seguir.locked{opacity:0.45;filter:grayscale(0.55);}
 #btn-read{pointer-events:auto;cursor:pointer;border:none;color:#fff;font-weight:900;font-size:28px;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #ff6a55 0%, #e01e0e 45%, #8a0f06 100%);box-shadow:inset 0 2px 4px rgba(255,255,255,0.3), 0 4px 10px rgba(0,0,0,0.4);animation:readPulse 0.9s ease-in-out infinite;}
@@ -310,7 +310,7 @@ table.rk tr.top3 td{background:#f7efe7;}
 .game-ctrl-btn{flex:1;padding:13px;background:#111;color:#fff;border:1px solid #333;border-right:none;font-size:0.82rem;font-weight:900;letter-spacing:0.12em;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;justify-content:center;}
 .game-ctrl-btn:last-child{border-right:1px solid #ddd;}
 .tag-line{text-align:center;font-size:10px;color:#cccccc;letter-spacing:1.5px;margin-top:6px;text-transform:uppercase;font-weight:600;}
-.met{display:flex;flex-direction:column;gap:5px;margin:6px 0 0;}
+.met{display:flex;flex-direction:column;gap:4px;margin:5px 0 0;}
 .met-c{border:1px solid #e4e4e4;border-radius:7px;padding:6px 9px 7px;background:#fff;}
 .met-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
 .met-k{font-size:11px;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:#777;}
@@ -1947,6 +1947,8 @@ function initRival(){
   else if (mm === "total"){ state.rivalStyle = RIVAL_STYLES[Math.floor(Math.random() * RIVAL_STYLES.length)]; state.rivalTactic = pickStyleTactic(state.rivalStyle); }
   else { state.rivalStyle = null; state.rivalTactic = null; }
 }
+var REPEAT_P = 0.30;   // probabilidad de repetir plan AUNQUE el rival haya dominado el juego
+                       // (si repite mucho, el test "?" se contesta comparando con el juego anterior)
 function adaptRival(rivalWon, myPts){
   if (state.mode === "normal") return;                 // JUEGO no adapta
   var mm = state.matchMode || "azar";
@@ -1954,7 +1956,7 @@ function adaptRival(rivalWon, myPts){
   // Repetir SOLO si el rival gano dejandome en 0 o 15 (myPts <= 1) y aun no se ha repetido.
   // Maximo 2 juegos seguidos con el mismo plan; en cualquier otro caso, cambia.
   var dominante = rivalWon && ((myPts || 0) <= 1);
-  if (dominante && (state.planRepeats || 0) < 1){
+  if (dominante && (state.planRepeats || 0) < 1 && Math.random() < REPEAT_P){
     state.planRepeats = (state.planRepeats || 0) + 1;  // 2o juego con el mismo plan
     return;
   }
@@ -2252,6 +2254,7 @@ function logBall(hit, dist, hitR, rt){
 var TH_ANT = { good: 70, mid: 30 };       // ANTICIPACION 0-100: 100 = cortada en la RED, 46 = linea de saque (T), 0 = donde BOTA
 var TH_EST = { good: 80, mid: 65 };       // estabilidad 0-100 = 100 - desviacion de la anticipacion
 var TH_LEC = { good: 5, mid: 0 };         // mejora en puntos porcentuales (MAS = mejor)
+var TH_TST = { good: 70, mid: 40 };       // acierto del test "?" (azar = 25% con 4 opciones)
 var MET_COL = { bien: "#2f7d4f", regular: "#c9922b", mal: "#b03a2e" };
 function ballStats(){
   var B = state.tbBalls || [], hit = [], i;
@@ -2282,6 +2285,7 @@ function ballStats(){
 function lvlAnt(v){ return (v >= TH_ANT.good) ? "bien" : ((v >= TH_ANT.mid) ? "regular" : "mal"); }
 function lvlEst(v){ return (v >= TH_EST.good) ? "bien" : ((v >= TH_EST.mid) ? "regular" : "mal"); }
 function lvlLec(v){ return (v >= TH_LEC.good) ? "bien" : ((v >= TH_LEC.mid) ? "regular" : "mal"); }
+function lvlTst(v){ return (v >= TH_TST.good) ? "bien" : ((v >= TH_TST.mid) ? "regular" : "mal"); }
 var DIAG_EST = {
   bien:    "Sostienes la atenci\u00f3n todo el punto: tus bolas son regulares de principio a fin.",
   regular: "Te mantienes, pero se te escapan bolas sueltas. Vigila los puntos largos.",
@@ -2291,6 +2295,11 @@ var DIAG_ANT = {
   bien:    "Cortas la bola cerca de la RED: te anticipas de verdad y llegas mandando t\u00fa.",
   regular: "La coges por la l\u00ednea de saque (la T). Llegas, pero sin mandar: sal antes.",
   mal:     "La esperas atr\u00e1s, casi en el bote. Te aseguras, pero sin margen: si el rival aprieta, no llegas."
+};
+var DIAG_TST = {
+  bien:    "Reconoces el plan del rival: tu lectura t\u00e1ctica es s\u00f3lida.",
+  regular: "Aciertas a medias. F\u00edjate en el patr\u00f3n mientras juegas, no lo deduzcas al final.",
+  mal:     "No est\u00e1s leyendo el plan del rival: respondes casi al azar."
 };
 var DIAG_LEC = {
   bien:    "Mejoras seg\u00fan avanza el partido: est\u00e1s cogiendo el patr\u00f3n del rival.",
@@ -2303,7 +2312,8 @@ function metCard(k, val, pct, lvl, diag){
   var h = "";
   h += '<div class="met-c">';
   h += '<div class="met-h"><div class="met-k">' + k + '</div><div class="met-v" style="color:' + col + ';">' + val + '</div></div>';
-  h += '<div class="met-b"><div class="met-f" style="width:' + w + '%;background:' + col + ';"></div></div>';
+  if (pct >= 0) h += '<div class="met-b"><div class="met-f" style="width:' + w + '%;background:' + col + ';"></div></div>';
+  else h += '<div style="height:5px;"></div>';
   h += '<div class="met-d">' + diag + '</div>';
   h += '</div>';
   return h;
@@ -2318,12 +2328,16 @@ function metBlock(a){
   var lPts = Math.round(st.lect);                          // el nivel se decide sobre el valor que se MUESTRA
   var eL = lvlEst(st.estab), aL = lvlAnt(st.ant), lL = lvlLec(lPts);
   var aPct = Math.round(st.ant);
-  h += metCard("Estabilidad", st.estab + "/100", st.estab, eL, DIAG_EST[eL]);
   h += metCard("Anticipaci\u00f3n", aPct + "/100", aPct, aL, DIAG_ANT[aL]);
+  h += metCard("Estabilidad", st.estab + "/100", st.estab, eL, DIAG_EST[eL]);
   h += metCard("Lectura", (lPts >= 0 ? "+" : "") + lPts + " pts", 50 + lPts * 3, lL, DIAG_LEC[lL]);
   var rTot = state.matchReadTotal || 0;
-  var efi = rTot ? (Math.round((state.matchReadOk || 0) / rTot * 100) + "% en el test t\u00e1ctico  \u00b7  ") : "";
-  h += '<div class="met-foot">' + efi + st.n + " bolas  \u00b7  " + (a.n ? Math.round(a.avg) : 0) + " ms de media</div>";
+  if (rTot > 0){
+    var tPct = Math.round((state.matchReadOk || 0) / rTot * 100);
+    var tL = lvlTst(tPct);
+    h += metCard("An\u00e1lisis", tPct + "% de acierto", -1, tL, DIAG_TST[tL] + ' <span style="color:#999;font-weight:700;">(' + (state.matchReadOk || 0) + "/" + rTot + ' preguntas)</span>');
+  }
+  h += '<div class="met-foot">' + st.n + " bolas  \u00b7  " + (a.n ? Math.round(a.avg) : 0) + " ms de media</div>";
   return h + '</div>';
 }
 function tennisAgg(){
@@ -2350,7 +2364,6 @@ function finishTennis(){
   var stC = ballStats();
   var canChart = (stC.ok && stC.byK.length >= 2);
   if (canChart) html += '<div class="chart-card"><div class="chart-ttl">Anticipaci&#243;n dentro del punto</div>'
-                       + '<div class="chart-sub">d&#243;nde cortas la bola, golpe a golpe &#183; si la l&#237;nea baja, te vas atr&#225;s</div>'
                        + '<canvas id="ant-chart" class="ant-chart"></canvas></div>';
   var canSave = (a.n > 0);
   html += '<div class="res-actions">';
@@ -2773,7 +2786,7 @@ function showContinueBtn(stakes){
   if (sl){
     if (stakes){
       sl.textContent = stakes.t;
-      sl.style.background = stakes.mine ? "#c05c34" : "#cc2b2b";
+      sl.style.background = stakes.mine ? "#2f7d4f" : "#cc2b2b";   // la mia en verde, la del rival en rojo
       sl.style.display = "";
     } else { sl.style.display = "none"; }
   }
