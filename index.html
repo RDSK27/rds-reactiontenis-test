@@ -143,7 +143,8 @@ header img{width:100%;height:auto;display:block;margin-bottom:0;}
 .p1v1-lbl{font-size:11px;letter-spacing:1px;color:#666;text-transform:uppercase;font-weight:900;text-align:left;}
 #setup-1v1 select:disabled{background:#eeeeee !important;border-color:#cccccc !important;color:#bbbbbb !important;opacity:1;}
 #btn-goranking{order:2;width:75%;height:auto;padding:9px;margin:6px auto 0;display:flex;align-items:center;justify-content:center;letter-spacing:.18em;border-radius:6px;}
-.home-bottom{margin-top:auto;align-self:center;width:92%;box-sizing:border-box;margin-bottom:calc(16px + env(safe-area-inset-bottom, 0px));border:3px solid var(--rds-red);border-radius:10px;background-color:#222;background-image:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.20)),var(--ball);background-size:cover;background-position:center;background-repeat:no-repeat;padding:14px 12px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.app-ver{text-align:center;font-size:10px;font-weight:700;letter-spacing:1.2px;color:#4a4a4a;margin-bottom:calc(10px + env(safe-area-inset-bottom, 0px));}
+.home-bottom{margin-top:auto;align-self:center;width:92%;box-sizing:border-box;margin-bottom:10px;border:3px solid var(--rds-red);border-radius:10px;background-color:#222;background-image:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.20)),var(--ball);background-size:cover;background-position:center;background-repeat:no-repeat;padding:14px 12px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;}
 .home-bottom .tag-line{color:#cccccc;order:4;}
 .mode-desc{
   background:#fff;border:1px solid #dddddd;border-radius:4px;
@@ -361,6 +362,7 @@ table.rk tr.top3 td{background:#f7efe7;}
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div></div>
       <button class="btn rank" id="btn-goranking">&#127942; RANKING</button>
       </div>
+      <div class="app-ver">rtenis-v123</div>
     </div>
   </section>
 
@@ -371,14 +373,16 @@ table.rk tr.top3 td{background:#f7efe7;}
         <div class="pt1v1-res" id="pt1v1-res-2">-</div>
         <div class="pt1v1-sc" id="pt1v1-sc-2">0 - 0</div>
         <button class="pt1v1-btn" id="pt1v1-go-2" onclick="ready1v1(2)">Seguir</button>
-        <button class="pt1v1-btn pt1v1-tac" onclick="openTac1v1(2)">T&#225;ctica</button>
+        <button class="pt1v1-btn pt1v1-tac" id="pt1v1-tc-2" onclick="openTac1v1(2)">T&#225;ctica</button>
+        <button class="pt1v1-btn" id="pt1v1-rs-2" style="display:none;" onclick="open1v1Results(2)">Resultados</button>
 
       </div>
       <div class="pt1v1" id="pt1v1-1" style="display:none;bottom:6%;">
         <div class="pt1v1-res" id="pt1v1-res-1">-</div>
         <div class="pt1v1-sc" id="pt1v1-sc-1">0 - 0</div>
         <button class="pt1v1-btn" id="pt1v1-go-1" onclick="ready1v1(1)">Seguir</button>
-        <button class="pt1v1-btn pt1v1-tac" onclick="openTac1v1(1)">T&#225;ctica</button>
+        <button class="pt1v1-btn pt1v1-tac" id="pt1v1-tc-1" onclick="openTac1v1(1)">T&#225;ctica</button>
+        <button class="pt1v1-btn" id="pt1v1-rs-1" style="display:none;" onclick="open1v1Results(1)">Resultados</button>
 
       </div>
       <div id="cd-1v1" style="display:none;"><span id="cd-1v1-n">3</span></div>
@@ -417,8 +421,8 @@ table.rk tr.top3 td{background:#f7efe7;}
         <button class="pause-btn mm-btn" data-mm="estrategia">Estrategia</button>
         <button class="pause-btn mm-btn" data-mm="total">Total</button>
         <div class="mm-count" id="mm-count">
-          <button class="mm-cbtn" data-count="4">SET 4</button>
-          <button class="mm-cbtn sel" data-count="6">SET 6</button>
+          <button class="mm-cbtn sel" data-count="4">SET 4</button>
+          <button class="mm-cbtn" data-count="6">SET 6</button>
         </div>
         <button class="pause-btn pause-alt" onclick="goHome()">Inicio</button>
       </div>
@@ -486,8 +490,8 @@ table.rk tr.top3 td{background:#f7efe7;}
         <div class="opt rank-tab" data-mode="limite">PARTIDO</div>
       </div>
       <div class="rank-tabs" id="rk-count">
-        <div class="opt rank-tab" data-count="4">SET 4</div>
-        <div class="opt rank-tab sel" data-count="6">SET 6</div>
+        <div class="opt rank-tab sel" data-count="4">SET 4</div>
+        <div class="opt rank-tab" data-count="6">SET 6</div>
       </div>
       <div class="rank-tabs" id="rk-matchmode">
         <div class="opt rank-tab" data-matchmode="azar">AZAR</div>
@@ -605,7 +609,7 @@ var MODES = {
 // ---------- Estado ----------
 var state = {
   mode: "normal",
-  count: 6,
+  count: 4,
   deuce: "ventaja",
   penaliza: true,
   trials: [],
@@ -639,7 +643,7 @@ var state = {
   cronoElapsed: 0
 };
 
-var rankFilter = { mode: "extremo", count: 6, penaliza: true, matchMode: "tactica", order: "resultado" };
+var rankFilter = { mode: "extremo", count: 4, penaliza: true, matchMode: "tactica", order: "resultado" };
 var savedName = "";
 function buildPlayerName(ini, dep){
   var i = (ini || "").trim().toUpperCase().replace(/[^A-Z]/g, "").slice(0,3);
@@ -686,6 +690,7 @@ function resize1v1(){
   drawCourt();
 }
 function start1v1(){
+  lastPlayed = { mode: "1v1", count: 0 };   // para que "Repetir" vuelva al 1v1
   show("screen-1v1");
   setTimeout(function(){ setup1v1(); show1v1Setup(); }, 30);   // layout -> pista -> configuracion
 }
@@ -771,6 +776,8 @@ function prepare1v1(){
   g1.server = 1; g1.ball = null; g1.hawk = null;
   g1.ready = {1:false, 2:false};
   g1.picked = {1:false, 2:false};
+  g1.balls = {1:[], 2:[]};                 // instrumentacion bola a bola de cada jugador
+  g1.k = 0;
   p1v1[1]._side = null; p1v1[2]._side = null;
   p1v1[1]._n = 0; p1v1[2]._n = 0;
   p1v1[1]._hist = []; p1v1[2]._hist = []; p1v1[1]._cool = 0; p1v1[2]._cool = 0;
@@ -812,7 +819,7 @@ function markPicked1v1(n){
   if (!g1.on) syncStart1v1();
 }
 // ---------- Motor 1vs1 ----------
-var g1 = { on:false, raf:0, ball:null, turn:1, server:1, pts:{1:0,2:0}, last:0, rally:0, over:false, msg:"" };
+var g1 = { on:false, raf:0, ball:null, turn:1, server:1, pts:{1:0,2:0}, last:0, rally:0, over:false, msg:"", balls:{1:[],2:[]} };
 function sites1v1(){
   var g = computeCourtGeom();
   var wS = g.xSglR - g.xSglL;
@@ -904,9 +911,40 @@ function serve1v1(){
 function launch1v1(ox, oy, tx, ty, from, to){
   var V = speed1v1(from);
   var dx = tx - ox, dy = ty - oy, len = Math.hypot(dx, dy) || 1;
-  var r = Math.max(6, Math.round(computeCourtGeom().base * TB_RADIUS_FACTOR));   // mismo tamano que en Juego/Set/Partido
-  g1.ball = { x:ox, y:oy, vx:dx/len*V, vy:dy/len*V, r:r, tAppear:performance.now(), trail:[], to:to, tx:tx, ty:ty };
+  var gg = computeCourtGeom();
+  var r = Math.max(6, Math.round(gg.base * TB_RADIUS_FACTOR));   // mismo tamano que en Juego/Set/Partido
+  var tf = len / V;                                              // ms de vuelo hasta el destino (el loop del 1v1 usa dt en ms)
+  var fn = (Math.abs(dy) > 1) ? ((gg.cy - oy) / dy) : 0.5;       // fraccion del vuelo en la que cruza la red
+  if (fn < 0.02) fn = 0.02;
+  if (fn > 0.98) fn = 0.98;
+  g1.ball = { x:ox, y:oy, vx:dx/len*V, vy:dy/len*V, r:r, tAppear:performance.now(), trail:[], to:to, tx:tx, ty:ty,
+              k:(g1.k || 0), tFlight:tf, fnet:fn, dist:len };
+  g1.k = (g1.k || 0) + 1;                                        // 0 = saque, 1 = resto, 2 = ...
   g1.turn = to;
+}
+function logBall1v1(pl, hit, dist, hitR, rt){
+  // misma escala que logBall: 100 = cortada en la red, 46 = en la T, 0 = donde bota
+  var b = g1.ball;
+  if (!b || !g1.balls || !g1.balls[pl]) return;
+  if (g1.balls[pl].length >= 400) return;
+  var tf = b.tFlight || 0;
+  var f = (tf > 0) ? (rt / tf) : 0;
+  var fn = (b.fnet != null) ? b.fnet : 0.5;
+  var den = 1 - fn;
+  var ant = (den > 0.02) ? ((1 - f) / den) * 100 : 0;
+  ant = Math.max(0, Math.min(100, ant));
+  g1.balls[pl].push({
+    k: b.k || 0,
+    rt: Math.round(rt),
+    tf: Math.round(tf),
+    f: Math.round(f * 1000) / 1000,
+    fn: Math.round(fn * 1000) / 1000,
+    a: Math.round(ant),
+    e: Math.round((hitR > 0 ? dist / hitR : 0) * 100) / 100,
+    d: Math.round(b.dist || 0),
+    c: 0,
+    h: hit ? 1 : 0
+  });
 }
 function hit1v1(pl, px, py){
   var opp = (pl === 1) ? 2 : 1;
@@ -936,7 +974,7 @@ function setLabel1v1(n){
   return s;
 }
 function point1v1(winner, why, delay){
-  g1.ball = null; g1.over = true; g1.rally = 0;
+  g1.ball = null; g1.over = true; g1.rally = 0; g1.k = 0;
   p1v1[1]._side = null; p1v1[2]._side = null;
   p1v1[1]._n = 0; p1v1[2]._n = 0;
   p1v1[1]._hist = []; p1v1[2]._hist = []; p1v1[1]._cool = 0; p1v1[2]._cool = 0;
@@ -983,6 +1021,38 @@ function winSet1v1(w){
   if (d1v1.mode === "extremo"){ g1.matchOver = true; g1.winner = w; return; }  // SET: acaba al ganar un set
   if (g1.sets[w] >= 2){ g1.matchOver = true; g1.winner = w; }                  // PARTIDO: al mejor de 3
 }
+function agg1v1(pl){
+  var B = (g1.balls && g1.balls[pl]) ? g1.balls[pl] : [], n = 0, sum = 0;
+  for (var i = 0; i < B.length; i++){ if (B[i].h){ n++; sum += B[i].rt; } }
+  return { n:n, avg: n ? (sum / n) : 0 };
+}
+function open1v1Results(pl){
+  stop1v1();
+  hidePt1v1();
+  render1v1Results(pl);
+  show("screen-results");
+}
+function render1v1Results(pl){
+  var opp = (pl === 1) ? 2 : 1;
+  var win = (g1.winner === pl);
+  var html = "";
+  html += '<div class="result-hero' + (win ? "" : " fail") + '">';
+  html += '<div class="big">JUGADOR ' + pl + '</div>';
+  html += '<div class="lbl">' + (win ? "Victoria" : "Derrota") + "  \u00b7  " + setLabel1v1(pl) + '</div>';
+  html += '</div>';
+  html += metBlock(agg1v1(pl), g1.balls[pl], true);          // sin tarjeta ANALISIS: en 1v1 no hay test "?"
+  var stC = ballStats(g1.balls[pl]);
+  var canChart = (stC.ok && stC.byK.length >= 2);
+  if (canChart) html += '<div class="chart-card"><div class="chart-ttl">Anticipaci&#243;n dentro del punto</div>'
+                       + '<canvas id="ant-chart" class="ant-chart"></canvas></div>';
+  html += '<div class="res-actions">';
+  html += '<button id="res-swap" class="res-rank-btn">JUGADOR ' + opp + '</button>';   // ni guardar ni ranking: aqui no pintan nada
+  html += '</div>';
+  $("results-pad").innerHTML = html;
+  var sw = $("res-swap");
+  if (sw) sw.addEventListener("click", function(){ render1v1Results(opp); });
+  if (canChart) setTimeout(function(){ drawAntChart("ant-chart", stC.byK); }, 80);
+}
 function showEnd1v1(){
   stop1v1();
   for (var n = 1; n <= 2; n++){
@@ -991,6 +1061,8 @@ function showEnd1v1(){
     if (res) res.textContent = (g1.winner === n) ? "\u00a1GANAS!" : "PIERDES";
     if (sc) sc.textContent = (d1v1.mode === "normal") ? "Juego" : setLabel1v1(n);
     if (go){ go.textContent = "Otra vez"; go.classList.remove("ok"); go.onclick = function(){ hidePt1v1(); show1v1Setup(); }; }
+    var tc = $("pt1v1-tc-" + n); if (tc) tc.style.display = "none";      // partido acabado: la tactica ya no pinta nada
+    var rs = $("pt1v1-rs-" + n); if (rs) rs.style.display = "";
     box.style.display = "block";
   }
 }
@@ -1005,6 +1077,8 @@ function showPt1v1(winner, why){
     if (res) res.textContent = ttl;
     if (sc) sc.innerHTML = gameLabel1v1(n, true) + (d1v1.mode !== "normal" ? '<div style="font-size:11px;color:#666;font-weight:700;margin-top:2px;">' + setLabel1v1(n) + '</div>' : "");
     if (go){ go.textContent = "Seguir"; go.classList.remove("ok"); go.onclick = (function(k){ return function(){ ready1v1(k); }; })(n); }
+    var tc = $("pt1v1-tc-" + n); if (tc) tc.style.display = "";
+    var rs = $("pt1v1-rs-" + n); if (rs) rs.style.display = "none";
     box.style.display = "block";
   }
 }
@@ -1129,10 +1203,15 @@ function tap1v1(clientX, clientY){
   if (tapper !== who) return;                            // toque en el campo que no toca: se ignora (ni punto ni fallo)
   var opp = (who === 1) ? 2 : 1;
   var d = Math.hypot(px - b.x, py - b.y);
-  if (d <= b.r * TB_HIT_FACTOR){
+  var hitR = b.r * TB_HIT_FACTOR;
+  var rt = performance.now() - b.tAppear - LAT_CORRECTION;
+  if (rt < 1) rt = 1;
+  if (d <= hitR){
+    logBall1v1(who, true, d, hitR, rt);      // antes de hit1v1: lanza la bola siguiente y pisa g1.ball
     soundRacket(); flashTap(px, py, true);
     hit1v1(who, px, py);
   } else {
+    logBall1v1(who, false, d, hitR, rt);
     g1.hawk = { tap:{ x:px, y:py }, ball:{ x:b.x, y:b.y, r:b.r } };   // ojo de halcon: donde estaba la bola y donde tocaste
     point1v1(opp, "punteria", 900);
   }
@@ -2256,8 +2335,8 @@ var TH_EST = { good: 80, mid: 65 };       // estabilidad 0-100 = 100 - desviacio
 var TH_LEC = { good: 5, mid: 0 };         // mejora en puntos porcentuales (MAS = mejor)
 var TH_TST = { good: 70, mid: 40 };       // acierto del test "?" (azar = 25% con 4 opciones)
 var MET_COL = { bien: "#2f7d4f", regular: "#c9922b", mal: "#b03a2e" };
-function ballStats(){
-  var B = state.tbBalls || [], hit = [], i;
+function ballStats(balls){
+  var B = balls || state.tbBalls || [], hit = [], i;   // sin argumento: motor normal
   for (i=0;i<B.length;i++) if (B[i].h && B[i].tf > 0) hit.push(B[i]);
   var n = hit.length;
   var out = { n:n, ok:false, ant:0, sd:0, estab:0, lect:0, byK:[] };
@@ -2318,8 +2397,8 @@ function metCard(k, val, pct, lvl, diag){
   h += '</div>';
   return h;
 }
-function metBlock(a){
-  var st = ballStats();
+function metBlock(a, balls, noRead){
+  var st = ballStats(balls);
   var h = '<div class="met">';
   if (!st.ok){
     h += '<div class="met-c"><div class="met-d">Pocas bolas para analizar (hacen falta al menos 4).</div></div>';
@@ -2331,7 +2410,7 @@ function metBlock(a){
   h += metCard("Anticipaci\u00f3n", aPct + "/100", aPct, aL, DIAG_ANT[aL]);
   h += metCard("Estabilidad", st.estab + "/100", st.estab, eL, DIAG_EST[eL]);
   h += metCard("Lectura", (lPts >= 0 ? "+" : "") + lPts + " pts", 50 + lPts * 3, lL, DIAG_LEC[lL]);
-  var rTot = state.matchReadTotal || 0;
+  var rTot = noRead ? 0 : (state.matchReadTotal || 0);
   if (rTot > 0){
     var tPct = Math.round((state.matchReadOk || 0) / rTot * 100);
     var tL = lvlTst(tPct);
@@ -2365,7 +2444,8 @@ function finishTennis(){
   var canChart = (stC.ok && stC.byK.length >= 2);
   if (canChart) html += '<div class="chart-card"><div class="chart-ttl">Anticipaci&#243;n dentro del punto</div>'
                        + '<canvas id="ant-chart" class="ant-chart"></canvas></div>';
-  var canSave = (a.n > 0);
+  var isJuego = (state.mode === "normal");            // JUEGO no tiene pestana en el ranking
+  var canSave = (a.n > 0) && !isJuego;
   html += '<div class="res-actions">';
   html += '<button id="res-save" class="res-save-btn"' + (canSave ? '' : ' disabled') + '>GUARDAR RESULTADO</button>';
   html += '<button id="res-ranking" class="res-rank-btn">RANKING</button>';
@@ -2385,7 +2465,7 @@ function finishTennis(){
       });
     });
   }
-  if (!canSave && $("save-feedback")) $("save-feedback").textContent = "Sin bolas tocadas: no se guarda";
+  if (!canSave && !isJuego && $("save-feedback")) $("save-feedback").textContent = "Sin bolas tocadas: no se guarda";
   showFinishTransition("PARTIDO FINALIZADO");
   if (canChart){
     setTimeout(function(){ drawAntChart("ant-chart", stC.byK); }, 1100);
@@ -2791,7 +2871,10 @@ function showContinueBtn(stakes){
     } else { sl.style.display = "none"; }
   }
   var b = $("btn-seguir");
-  if (b){ b.textContent = state.pendingFinish ? "Resultados" : "Seguir"; b.onclick = function(){ if (state.readRequired){ openRead(); return; } hideContinueBtn(); if (state.pendingFinish){ state.pendingFinish = false; finishTennis(); } else { startPoint(); } }; b.style.display = ""; }
+  if (b){
+    if (state.pendingFinish){ b.style.display = "none"; b.onclick = null; }   // fin de partido: tras responder el "?" se va solo a resultados
+    else { b.textContent = "Seguir"; b.onclick = function(){ if (state.readRequired){ openRead(); return; } hideContinueBtn(); startPoint(); }; b.style.display = ""; }
+  }
 }
 function hideContinueBtn(){
   state.readRequired = false;
@@ -2837,6 +2920,7 @@ function readTacticOpts(){
   for (var j=chosen.length-1;j>0;j--){ var r=Math.floor(Math.random()*(j+1)), t=chosen[j]; chosen[j]=chosen[r]; chosen[r]=t; }
   return chosen;
 }
+var READ_END_MS = 1800;   // lo que se ve "Correcto / Era X" antes de pasar a resultados
 function renderReadStep(){
   var panel = $("read-panel"); if (!panel) return;
   var dim = state.readDims[state.readIdx];
@@ -2866,6 +2950,11 @@ function showReadResult(){
   panel.innerHTML = html; panel.style.display = "";
   state.readRequired = false;
   var sgd = $("btn-seguir"); if (sgd) sgd.classList.remove("locked");
+  if (state.pendingFinish){                       // era la pregunta del final: a resultados sin boton
+    state.pendingFinish = false;
+    clearTimeout(state.gapTimer);
+    state.gapTimer = setTimeout(function(){ hideContinueBtn(); finishTennis(); }, READ_END_MS);
+  }
 }
 function hideRead(){
   var b = $("btn-read"); if (b){ b.style.display = "none"; b.onclick = null; }
@@ -3399,7 +3488,7 @@ function applyJuegoCountUI(isJuego){ /* SET4/SET6 vive ahora en el panel de modo
 function openRanking(){
   var m = state.mode;
   rankFilter.mode = (m === "normal") ? "extremo" : m;   // JUEGO ya no tiene pestana: cae en SET
-  rankFilter.count = state.count ? state.count : 6;
+  rankFilter.count = state.count ? state.count : 4;
   rankFilter.penaliza = state.penaliza;
   var mm = state.matchMode;
   rankFilter.matchMode = (mm === "azar" || mm === "tactica" || mm === "estrategia" || mm === "total") ? mm : "tactica";
@@ -3431,7 +3520,7 @@ function loadRanking(){
 }
 
 function goHome(){ stopLoop(); if (typeof stop1v1 === "function") stop1v1(); if (typeof stopInfinito === "function") stopInfinito(); if (typeof stopPeloteo === "function") stopPeloteo(); show("screen-home"); }
-function repeatTest(){ stopLoop(); if (lastPlayed){ state.mode = lastPlayed.mode; state.count = lastPlayed.count; } startGame(); }
+function repeatTest(){ stopLoop(); if (lastPlayed && lastPlayed.mode === "1v1"){ stop1v1(); start1v1(); return; } if (lastPlayed){ state.mode = lastPlayed.mode; state.count = lastPlayed.count; } startGame(); }
 var TACTIC_OPTS = [["esquinas","Esquina a esquina"],["insistencia","Insistencia (mismo lado)"],["prof_corta","Profundo cruzado + corta"],["corto_largo","Cruzado corto + paralelo largo"],["media_volea","Media pista + volea"],["prof_dejada","Profunda y dejada"],["dejada_subir","Dejada y subir"]];
 var STYLE_OPTS = [["pasabolas","Pasabolas / Defensivo"],["atacante","Atacante / Golpeador"],["contragolpeador","Contragolpeador"],["todo_pista","Toda la pista"]];
 function hasOpt(opts, v){ for (var i=0;i<opts.length;i++){ if (opts[i][0] === v) return true; } return false; }
