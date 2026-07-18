@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#ffffff">
@@ -107,6 +107,7 @@ header img{width:100%;height:auto;max-height:22vh;object-fit:cover;display:block
 .home-name-btn:active{transform:translateY(1px);}
 .home-name-wrap{order:3;width:200px;max-width:90%;margin:6px auto 0;flex-direction:row;align-items:stretch;height:38px;gap:0;}
 .home-ini-input{flex:1;min-width:0;height:100%;box-sizing:border-box;border:2px solid var(--rds-red);border-right:none;border-radius:5px 0 0 5px;text-align:center;font-weight:700;font-size:16px;letter-spacing:1px;color:#111;text-transform:uppercase;background:#fff;padding:0 6px;}
+input,select,textarea{-webkit-user-select:text;user-select:text;}
 .home-ini-input:focus{outline:none;}
 .home-sport-select{flex:1;min-width:0;height:100%;box-sizing:border-box;border:2px solid var(--rds-red);border-radius:0 5px 5px 0;font-weight:700;font-size:12px;color:#111;background:#fff;padding:0 8px;-webkit-appearance:none;appearance:none;}
 .home-sport-select:focus{outline:none;}
@@ -119,9 +120,10 @@ header img{width:100%;height:auto;max-height:22vh;object-fit:cover;display:block
 #btn-1v1:active{box-shadow:inset 0 3px 7px rgba(0,0,0,0.4);}
 .p1v1-block{width:100%;padding:8px 0;border-bottom:1px dashed #ddd;}
 .pt1v1{position:absolute;left:50%;margin-left:-140px;width:280px;box-sizing:border-box;z-index:9;background:rgba(255,255,255,0.96);border:3px solid var(--rds-red);border-radius:12px;padding:10px 12px;text-align:center;}
+.pt1v1-who{font-weight:900;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:3px;}
 .pt1v1-res{font-weight:900;font-size:15px;color:var(--rds-red);text-transform:uppercase;letter-spacing:1px;}
 .pt1v1-sc{font-weight:900;font-size:22px;color:#111;margin:2px 0 8px;}
-.pt1v1-btn{width:100%;padding:9px;border:none;border-radius:8px;background:var(--rds-red);color:#fff;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:5px;}
+.pt1v1-btn{width:100%;padding:15px 9px;border:none;border-radius:8px;background:var(--rds-red);color:#fff;font-weight:800;font-size:14px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:12px;}
 .pt1v1-btn.wait{background:#c9c9c9;color:#ffffff;}
 .pt1v1-btn.ok{background:#2e7d32;}
 .pt1v1-btn.locked{opacity:0.42;filter:grayscale(0.6);pointer-events:none;}
@@ -393,7 +395,7 @@ table.rk tr.top3 td{background:#f7efe7;}
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div></div>
       <button class="btn rank" id="btn-goranking">&#127942; RANKING</button>
       </div>
-      <div class="app-ver">rtenis-v138</div>
+      <div class="app-ver">rtenis-v159</div>
     </div>
   </section>
 
@@ -435,6 +437,7 @@ table.rk tr.top3 td{background:#f7efe7;}
       </div>
     </div>
     <div class="pt1v1" id="pt1v1-2" style="display:none;transform:rotate(180deg);top:6%;">
+        <div class="pt1v1-who">JUGADOR 2</div>
         <div class="pt1v1-res" id="pt1v1-res-2">-</div>
         <div class="pt1v1-sc" id="pt1v1-sc-2">0 - 0</div>
         <button class="pt1v1-btn" id="pt1v1-go-2" onclick="ready1v1(2)">Seguir</button>
@@ -443,6 +446,7 @@ table.rk tr.top3 td{background:#f7efe7;}
 
       </div>
       <div class="pt1v1" id="pt1v1-1" style="display:none;bottom:6%;">
+        <div class="pt1v1-who">JUGADOR 1</div>
         <div class="pt1v1-res" id="pt1v1-res-1">-</div>
         <div class="pt1v1-sc" id="pt1v1-sc-1">0 - 0</div>
         <button class="pt1v1-btn" id="pt1v1-go-1" onclick="ready1v1(1)">Seguir</button>
@@ -654,13 +658,13 @@ var AIM_LINE_FRAC = 0.45; // linea de mira: la bola debe cruzarla antes de tocar
 var SPEED_RAMP = 1.0;    // aumento de velocidad de la 1a a la ultima diana (1.0 = +100%)
 var LIMITE_ACCEL = 0.05; // modo limite: la velocidad sube un 5% por cada ensayo (infinito)
 var TRAIL_LEN = 14;      // numero de posiciones guardadas para la estela
-var TB_SPEED_FACTOR = 1.8;    // velocidad de la pelota (px/s respecto al alto de pista)
+var TB_SPEED_FACTOR = 1.65;    // velocidad de la pelota (px/s respecto al alto de pista)
 var TB_RADIUS_FACTOR = 0.042; // radio de la pelota respecto a la pista
 var TB_HIT_FACTOR = 2.2;      // radio de acierto = radio de la pelota * factor
 // --- velocidad adaptativa (segun resultado del punto) ---
-var SPEED_MIN = 1.2, SPEED_MAX = 2.6;   // limites de dificultad
+var SPEED_MIN = 1.12, SPEED_MAX = 2.6;   // limites de dificultad
 var SPEED_STEP_UP = 0.13;               // gano punto -> mas dificil (salto notable)
-var SPEED_STEP_DOWN = 0.10;             // pierdo punto -> mas facil (mas margen)
+var SPEED_STEP_DOWN = 0.13;             // pierdo punto -> mas facil (mas margen)
 // --- relacion toque -> origen/velocidad de la siguiente bola ---
 var ORIGIN_SHORT_MIN  = 0.04;   // prob. de bola corta (pegada a su red) en toque delantero
 var ORIGIN_SHORT_MAX  = 0.27;   // prob. de bola corta con toque en mi fondo (nunca mayoria)
@@ -1012,12 +1016,17 @@ function speed1v1(pl){
   return base * mul * SPEED_1V1 * rallyMul1v1();
 }
 function serve1v1(){
+  state.bounces = [];                 // botes del punto anterior
   var s = sites1v1(), pl = g1.server, opp = (pl === 1) ? 2 : 1;
   var oz = s.zone(pl);                                  // sale del fondo del que saca
-  var right = (g1.pts[1] + g1.pts[2]) % 2 === 0;
-  var ox = right ? s.latX[2] : s.latX[0];
   var tz = s.zone(opp);
-  var tx = right ? s.latX[0] : s.latX[2];               // cruzado
+  // punto par del juego (0,2,4..) = deuce court (derecha del sacador); impar = ventaja (izquierda)
+  var served = g1.tb ? (g1.tbp[1] + g1.tbp[2]) : (g1.pts[1] + g1.pts[2]);
+  var deuce = (served % 2 === 0);
+  // la derecha del sacador: jugador 1 mira hacia arriba, jugador 2 hacia abajo -> lados espejados
+  var srvRight = (pl === 1) ? deuce : !deuce;           // indice lateral del lado de saque del sacador
+  var ox = srvRight ? s.latX[2] : s.latX[0];
+  var tx = srvRight ? s.latX[0] : s.latX[2];            // cruzado a la diagonal del restador
   g1.pNext = 2;                                        // el saque no cuenta como bola del plan
   launch1v1(ox, oz[0], tx, tz[1], pl, opp);
 }
@@ -1112,7 +1121,9 @@ function award1v1(w){
   var o = (w === 1) ? 2 : 1;
   if (g1.tb){
     g1.tbp[w]++;
-    if (g1.tbp[w] >= 7 && (g1.tbp[w] - g1.tbp[o]) >= 2) winSet1v1(w);
+    var tot = g1.tbp[1] + g1.tbp[2];
+    if (g1.tbp[w] >= 7 && (g1.tbp[w] - g1.tbp[o]) >= 2){ winSet1v1(w); return; }
+    if (tot % 2 === 1) g1.server = (g1.server === 1) ? 2 : 1;   // cambia tras el 1er punto y luego cada 2
     return;
   }
   g1.pts[w]++;
@@ -1272,7 +1283,22 @@ function hidePt1v1(){
     var rs = $("pt1v1-rs-" + n); if (rs) rs.style.display = "none";   // Tactica si, Resultados no
   }
 }
+function countdownStart1v1(after){
+  if (g1.cd || g1.cdTimer) return;
+  var el0 = $("cd-1v1"), num0 = $("cd-1v1-n");
+  g1.cd = true;
+  if (!el0 || !num0){ g1.cd = false; after(); return; }
+  var k0 = 3; num0.textContent = String(k0); el0.style.display = "flex";
+  if (g1.cdTimer) clearInterval(g1.cdTimer);
+  g1.cdTimer = setInterval(function(){ k0--;
+    if (k0 > 0){ num0.textContent = String(k0); return; }
+    if (k0 === 0){ num0.textContent = "\u00a1YA!"; return; }
+    clearInterval(g1.cdTimer); g1.cdTimer = 0; g1.cd = false; el0.style.display = "none"; after();
+  }, 700);
+}
 function countdown1v1(after){
+  if (g1.cd || g1.cdTimer) return;                    // ya hay una cuenta atras en marcha
+  if (!(g1.ready && g1.ready[1] && g1.ready[2])) return;   // los DOS tienen que estar listos, sin excepcion
   var el = $("cd-1v1"), num = $("cd-1v1-n");
   g1.cd = true;                       // durante la cuenta atras se indica quien saca y quien resta
   if (!el || !num){ g1.cd = false; after(); return; }
@@ -1302,6 +1328,10 @@ function ready1v1(n){
   }
 }
 function openTac1v1(n){
+  // tocar Tactica te "des-confirma": nadie puede quedar listo por accidente mientras elige
+  g1.ready[n] = false;
+  var goN = $("pt1v1-go-" + n);
+  if (goN){ goN.textContent = (g1.on ? "Seguir" : "Seguir"); goN.classList.remove("ok"); }
   ddOpen(n, "Modo", MODE_OPTS_1V1, p1v1[n].mode, function(v){
     p1v1[n].mode = v;
     if (v === "tactica"){
@@ -1334,8 +1364,29 @@ function drawHawk1v1(){
     ctx.fillStyle = "#111111"; ctx.fill();
   }
 }
+function ballStake1v1(n){
+  if (!g1.on || g1.over || g1.cd || g1.matchOver) return "";
+  var o = (n === 1) ? 2 : 1;
+  // tie-break: 6+ y ventaja de 1 cierra el set
+  if (g1.tb){
+    if (g1.tbp[n] >= 6 && (g1.tbp[n] - g1.tbp[o]) >= 1)
+      return (d1v1.mode === "limite" && g1.sets[n] >= 1) ? "BOLA DE PARTIDO" : "BOLA DE SET";
+    return "";
+  }
+  // en juego normal: 40-30, 40-15, 40-0 o ventaja -> el punto puede cerrar el juego
+  var a = g1.pts[n], b = g1.pts[o];
+  if (!(a >= 3 && (a - b) >= 1)) return "";
+  if (d1v1.mode === "normal") return "BOLA DE JUEGO";              // solo se juega un juego
+  // ganar este juego, cierra set o partido?
+  var T = d1v1.count, ga = g1.games[n] + 1, gb = g1.games[o];
+  var cierraSet = (ga >= T && (ga - gb) >= 2);
+  if (!cierraSet) return "BOLA DE JUEGO";
+  if (d1v1.mode === "extremo") return "BOLA DE SET";              // solo se juega un set
+  return (g1.sets[n] >= 1) ? "BOLA DE PARTIDO" : "BOLA DE SET";   // partido al mejor de 3
+}
 function draw1v1(){
   drawCourt();
+  drawBounces();
   if (g1.hawk) drawHawk1v1();
   var b = g1.ball;
   if (b){ var sv = state.tb; state.tb = null; drawTennisBall(b); state.tb = sv; }
@@ -1351,6 +1402,24 @@ function draw1v1(){
   ctx.fillText(sq1, gg.cx, gg.cy + gg.ch * 0.30);
   ctx.save(); ctx.translate(gg.cx, gg.cy - gg.ch * 0.30); ctx.rotate(Math.PI);
   ctx.fillText(sq2, 0, 0); ctx.restore();
+  // aviso de bola de juego / set / partido, uno por lado
+  var st1 = ballStake1v1(1), st2 = ballStake1v1(2);
+  if (st1 || st2){
+    ctx.font = "900 " + Math.round(gg.base * 0.052) + "px system-ui, sans-serif";
+    if (st1){ ctx.fillStyle = "#2f7d4f"; ctx.fillText(st1, gg.cx, gg.cy + gg.ch * 0.40); }
+    if (st2){
+      ctx.fillStyle = "#2f7d4f";
+      ctx.save(); ctx.translate(gg.cx, gg.cy - gg.ch * 0.40); ctx.rotate(Math.PI); ctx.fillText(st2, 0, 0); ctx.restore();
+    }
+    // el que la puede perder lo ve en rojo y "... RIVAL" en su lado
+    if (st1 && !st2){
+      ctx.fillStyle = "#b03a2e";
+      ctx.save(); ctx.translate(gg.cx, gg.cy - gg.ch * 0.40); ctx.rotate(Math.PI); ctx.fillText(st1 + " RIVAL", 0, 0); ctx.restore();
+    }
+    if (st2 && !st1){
+      ctx.fillStyle = "#b03a2e"; ctx.fillText(st2 + " RIVAL", gg.cx, gg.cy + gg.ch * 0.40);
+    }
+  }
   if (g1.msg){
     ctx.font = "900 " + Math.round(gg.base * 0.06) + "px system-ui, sans-serif";
     ctx.fillStyle = "#fff"; ctx.fillText(g1.msg, gg.cx, gg.cy);
@@ -1362,7 +1431,9 @@ function loop1v1(ts){
   var dt = g1.last ? Math.min(32, ts - g1.last) : 16; g1.last = ts;
   var b = g1.ball;
   if (b){
+    var _px1 = b.x, _py1 = b.y;
     b.x += b.vx * dt; b.y += b.vy * dt;
+    bounceCheck(b, _px1, _py1);
     b.trail.push({x:b.x, y:b.y}); if (b.trail.length > TRAIL_LEN) b.trail.shift();
     var mg = b.r + 6;
     if (b.x < -mg || b.x > CW + mg || b.y < -mg || b.y > CH + mg){
@@ -1405,10 +1476,10 @@ function tap1v1(clientX, clientY){
 function begin1v1(){
   hidePt1v1();
   g1.on = true; g1.over = false; g1.last = 0;
-  g1.ready = {1:false, 2:false};
   cancelAnimationFrame(g1.raf);
   g1.raf = requestAnimationFrame(loop1v1);
-  countdown1v1(function(){ if (g1.on) serve1v1(); });
+  countdownStart1v1(function(){ if (g1.on) serve1v1(); });   // arranque ya validado por los dos
+  g1.ready = {1:false, 2:false};                              // se limpia despues de lanzar la cuenta
 }
 // ---------- Modo PELOTEO ----------
 var PEL_SPEED_0 = 0.42;      // arranca mas lento que Infinito (0.55)
@@ -1429,7 +1500,7 @@ function pelLaunch(from, ox, oy){
   var V = pelSpeed();
   var dx = tx - ox, dy = ty - oy, len = Math.hypot(dx, dy) || 1;
   var r = Math.max(6, Math.round(computeCourtGeom().base * TB_RADIUS_FACTOR));   // mismo tamano que en Juego/Set/Partido
-  gp.ball = { x:ox, y:oy, vx:dx/len*V, vy:dy/len*V, r:r, tAppear:performance.now(), trail:[], to:to };
+  gp.ball = { tx:tx, ty:ty, x:ox, y:oy, vx:dx/len*V, vy:dy/len*V, r:r, tAppear:performance.now(), trail:[], to:to };
   gp.side = to;
 }
 function pelServe(){
@@ -1449,6 +1520,7 @@ function pelEnd(why){
 }
 function drawPel(){
   drawCourt();
+  drawBounces();
   if (gp.hawk){ var sv = g1.hawk; g1.hawk = gp.hawk; drawHawk1v1(); g1.hawk = sv; }
   var b = gp.ball;
   if (b){ var s2 = state.tb; state.tb = null; drawTennisBall(b); state.tb = s2; }
@@ -1458,7 +1530,9 @@ function loopPel(ts){
   var dt = gp.last ? Math.min(32, ts - gp.last) : 16; gp.last = ts;
   var b = gp.ball;
   if (b){
+    var _pxp = b.x, _pyp = b.y;
     b.x += b.vx * dt; b.y += b.vy * dt;
+    bounceCheck(b, _pxp, _pyp);
     b.trail.push({x:b.x, y:b.y}); if (b.trail.length > TRAIL_LEN) b.trail.shift();
     var m = b.r + 6;
     if (b.x < -m || b.x > CW + m || b.y < -m || b.y > CH + m){ drawPel(); pelEnd("escapada"); return; }
@@ -1529,7 +1603,7 @@ function startPeloteo(){
   show("screen-1v1");
   setTimeout(function(){
     setup1v1();
-    gp.on = true; gp.hits = 0; gp.rts = []; gp.speed = PEL_SPEED_0;
+    gp.on = true; state.bounces = []; gp.hits = 0; gp.rts = []; gp.speed = PEL_SPEED_0;
     gp.ball = null; gp.hawk = null; gp.last = 0; gp.side = 1;
     cancelAnimationFrame(gp.raf);
     gp.raf = requestAnimationFrame(loopPel);
@@ -1557,7 +1631,7 @@ function infLaunch(){
   var V = infSpeed();
   var dx = t.x - o.x, dy = t.y - o.y, len = Math.hypot(dx, dy) || 1;
   var r = Math.max(6, Math.round(computeCourtGeom().base * TB_RADIUS_FACTOR));   // mismo tamano que en Juego/Set/Partido
-  gi.ball = { x:o.x, y:o.y, vx:dx/len*V, vy:dy/len*V, r:r, tAppear:performance.now(), trail:[] };
+  gi.ball = { tx:t.x, ty:t.y, x:o.x, y:o.y, vx:dx/len*V, vy:dy/len*V, r:r, tAppear:performance.now(), trail:[] };
 }
 function infEnd(why){
   if (!gi.on) return;
@@ -1570,6 +1644,7 @@ function infEnd(why){
 }
 function drawInf(){
   drawCourt();
+  drawBounces();
   if (gi.hawk){ var sv = g1.hawk; g1.hawk = gi.hawk; drawHawk1v1(); g1.hawk = sv; }
   var b = gi.ball;
   if (b){ var s2 = state.tb; state.tb = null; drawTennisBall(b); state.tb = s2; }
@@ -1586,7 +1661,9 @@ function loopInf(ts){
   var dt = gi.last ? Math.min(32, ts - gi.last) : 16; gi.last = ts;
   var b = gi.ball;
   if (b){
+    var _pxi = b.x, _pyi = b.y;
     b.x += b.vx * dt; b.y += b.vy * dt;
+    bounceCheck(b, _pxi, _pyi);
     b.trail.push({x:b.x, y:b.y}); if (b.trail.length > TRAIL_LEN) b.trail.shift();
     var m = b.r + 6;
     if (b.x < -m || b.x > CW + m || b.y < -m || b.y > CH + m){
@@ -1620,7 +1697,7 @@ function startInfinito(){
   show("screen-1v1");
   setTimeout(function(){
     setup1v1();
-    gi.on = true; gi.hits = 0; gi.rts = []; gi.speed = INF_SPEED_0;
+    gi.on = true; state.bounces = []; gi.hits = 0; gi.rts = []; gi.speed = INF_SPEED_0;
     gi.ball = null; gi.hawk = null; gi.last = 0;
     cancelAnimationFrame(gi.raf);
     gi.raf = requestAnimationFrame(loopInf);
@@ -1747,6 +1824,34 @@ function soundClick(){
   });
 }
 function soundHit(){ play(function(){ tone(900, 0.055, "sine", 0.22); }); } // un solo toque (agudo)
+function soundBounce(){
+  play(function(){
+    if (!audioCtx) return;
+    try {
+      var t0 = audioCtx.currentTime;
+      // cuerpo grave y seco: bola golpeando la tierra
+      var o = audioCtx.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(150, t0);
+      o.frequency.exponentialRampToValueAtTime(72, t0 + 0.06);
+      var og = audioCtx.createGain();
+      og.gain.setValueAtTime(0.0001, t0);
+      og.gain.linearRampToValueAtTime(0.26, t0 + 0.004);
+      og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.11);
+      o.connect(og); og.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + 0.13);
+      // pizca de "polvo": ruido muy corto y filtrado
+      var dur = 0.03, sr = audioCtx.sampleRate, n = Math.floor(sr * dur);
+      var buf = audioCtx.createBuffer(1, n, sr), chd = buf.getChannelData(0);
+      for (var i = 0; i < n; i++){ var env = Math.pow(1 - i / n, 3); chd[i] = (Math.random() * 2 - 1) * env; }
+      var noise = audioCtx.createBufferSource(); noise.buffer = buf;
+      var lp = audioCtx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(900, t0);
+      var ng = audioCtx.createGain(); ng.gain.setValueAtTime(0.12, t0);
+      ng.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      noise.connect(lp); lp.connect(ng); ng.connect(audioCtx.destination);
+      noise.start(t0); noise.stop(t0 + dur + 0.02);
+    } catch(e){}
+  });
+}
 function soundMiss(){ play(function(){ tone(180, 0.11, "sawtooth", 0.18); }); } // un solo toque (grave)
 function soundRacket(){
   // Si hay una muestra real cargada (state.racketBuf), se reproduce esa; si no, sintesis.
@@ -2005,6 +2110,36 @@ function computeSites(g){
   return { origins: origins, dests: dests };
 }
 
+function drawBounces(){
+  var arr = state.bounces;
+  if (!arr || !arr.length) return;
+  ctx.save();
+  for (var i = 0; i < arr.length; i++){
+    var b = arr[i];
+    ctx.globalAlpha = 0.95;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.6, 0, Math.PI * 2);   // punto, como el de punteria pero naranja
+    ctx.fillStyle = "#ff9a3c"; ctx.fill();
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+function addBounce(x, y, r){
+  if (!state.bounces) state.bounces = [];
+  state.bounces.push({ x: x, y: y, r: r });
+  if (state.bounces.length > 12) state.bounces.shift();
+  soundBounce();                         // "pock" en el instante del bote
+}
+// El bote se marca cuando la bola cruza su destino SIN haber sido tocada (la que se va).
+// Asi el jugador ve que boto dentro y se fue por no llegar, no por fallo del rival.
+function bounceCheck(b, prevX, prevY){
+  if (!b || b._bounced || b.tx == null || b.ty == null) return;
+  var d0 = (b.tx - prevX) * b.vx + (b.ty - prevY) * b.vy;
+  var d1 = (b.tx - b.x) * b.vx + (b.ty - b.y) * b.vy;
+  if (d0 > 0 && d1 <= 0){
+    b._bounced = true;
+    addBounce(b.tx, b.ty, b.r);   // donde cae de verdad, dentro o fuera de las lineas
+  }
+}
 function drawCourt(){
   if (!ctx) return;
   var W = CW, H = CH;
@@ -2127,16 +2262,20 @@ function makeServeShot(){
   var right = ((state.servePoint || 0) % 2 === 0);   // par: saca derecha; impar: saca izquierda
   state.servePoint = (state.servePoint || 0) + 1;
   var o = right ? s.origins[2] : s.origins[0];        // fondo del rival, esquina der / izq
-  // saque cruzado: derecha -> izquierda/centro-izq ; izquierda -> derecha/centro-der
-  var idxs = right ? [0, 1, 5, 6] : [3, 4, 8, 9];
-  var d = s.dests[idxs[Math.floor(Math.random() * idxs.length)]];
-  return { g: g, o: o, d: d };
+  // el saque DEBE botar en el cuadro de saque: entre la red (cy) y la linea de saque (ySrvB), y cruzado
+  var boxY = g.cy + (g.ySrvB - g.cy) * (0.45 + Math.random() * 0.45);   // dentro del cuadro, nunca pasa la T
+  var halfW = (g.xSglR - g.xSglL) * 0.5;
+  var boxX = right ? (g.cx - halfW * (0.15 + Math.random() * 0.7))      // saca der -> cuadro izquierdo
+                   : (g.cx + halfW * (0.15 + Math.random() * 0.7));     // saca izq -> cuadro derecho
+  var d = { x: boxX, y: boxY };
+  return { g: g, o: o, d: d, serve: true };
 }
 
 // ---------- Bola sorpresa: ruptura del patron en Juego/Set/Partido ----------
 // Sale del lado CONTRARIO al que dicta la tactica y CORTA (cerca de la red).
 // No aparece hasta haber visto SRP_MIN golpes del plan (el plan es constante dentro del juego),
 // y luego es probabilistica: si cayera siempre en el mismo golpe, la sorpresa seria el patron.
+var OUT_BALL_RATE = 0.10;   // proporcion de bolas del rival que se van FUERA (0 = desactivado, como antes)
 var SRP_MIN  = 8;      // golpes del plan que hay que ver antes de que pueda salir una sorpresa
 var SRP_P    = 0.25;   // probabilidad de sorpresa por bola, pasado el umbral
 var SRP_COOL = 3;      // golpes de enfriamiento despues de una sorpresa
@@ -2297,6 +2436,7 @@ function makeStyleShot(){
 }
 function spawnTennisBall(fromX, fromY){
   if (state.point && state.point.over) return;
+  if (fromX == null || fromY == null) state.bounces = [];   // primera bola del punto: limpia los botes anteriores
   var gGeom = computeCourtGeom();
   var depthBias = 0.5;
   if (fromX != null && fromY != null){
@@ -2323,6 +2463,18 @@ function spawnTennisBall(fromX, fromY){
     delay = 100 + tnorm * 700;                     // 0,1s (cerca) .. 0,8s (lejos)
   }
   shot.cued = (fromX != null && fromY != null);
+  // regla "bola fuera": algunas bolas del rally se van fuera; si las dejas, ganas el punto.
+  if (shot.cued && !shot.serve && OUT_BALL_RATE > 0 && Math.random() < OUT_BALL_RATE){
+    var gO = shot.g, dO = shot.d;
+    if (Math.random() < 0.6){                         // 60% se va por un lateral (pasillo/fuera)
+      var side = (dO.x < gO.cx) ? -1 : 1;
+      dO.x = (side < 0) ? (gO.xSglL - gO.base * (0.10 + Math.random() * 0.14))
+                        : (gO.xSglR + gO.base * (0.10 + Math.random() * 0.14));
+    } else {                                          // 40% se va larga (pasado el fondo)
+      dO.y = gO.y1 + gO.base * (0.08 + Math.random() * 0.12);
+    }
+    shot.out = true;
+  }
   if (shot.cued){
     var rCue = Math.max(6, Math.round(g.base * TB_RADIUS_FACTOR));
     state.cue = { x0: fromX, y0: fromY, x1: shot.o.x, y1: shot.o.y, r: rCue, t0: performance.now(), dur: delay };
@@ -2348,6 +2500,8 @@ function launchTennisBall(shot){
   state.cue = null;
   var tFlight = (V > 0) ? (len / V) * 1000 : 0;      // ms de vuelo previstos (V va en px/s)
   state.tb = { x: o.x, y: o.y, vx: dx / len * V, vy: dy / len * V, r: r, tAppear: performance.now(), trail: [],
+               tx: d.x, ty: d.y,                      // destino: donde botaria la bola
+               out: !!shot.out,                       // esta bola se va fuera: si la dejas, es tuya
                tFlight: tFlight,                      // duracion del vuelo: base de la fraccion de anticipacion
                dist: len,                             // recorrido de la bola (px)
                cued: !!shot.cued,                     // llevaba preaviso (estela)
@@ -2520,7 +2674,7 @@ function afterPointFlow(){
 function afterPoint(pointWon){
   tbUpdateHud();
   var ev = state.lastEvent, mine = (state.lastWinner === "me");
-  var word = pointWon ? "PUNTO" : "FALLO";
+  var word = pointWon ? (state.readOut ? "\u00a1FUERA!" : "PUNTO") : "FALLO";
   var green = pointWon;
   var evCol = mine ? "#1e9e46" : "#cc2b2b";
   var mid, midCol;
@@ -2531,9 +2685,12 @@ function afterPoint(pointWon){
     mid = mine ? "Set ganado" : "Set perdido"; midCol = evCol;
   } else if (ev === "game"){
     mid = mine ? "Juego ganado" : "Juego perdido"; midCol = evCol;
+  } else if (state.readOut){
+    mid = "Bien leido \u00b7 " + gameScoreStr(); midCol = "#1e9e46";
   } else {
     mid = gameScoreStr(); midCol = "#333333";
   }
+  state.readOut = false;
   showPointResult(word, mid, scoreLine(), green, midCol);
   var closed = (ev === "game" || ev === "set" || ev === "match" || state.matchOver);
   if (closed) askEmo(mine, afterPointFlow);   // la emocion ANTES del "?": el test no debe contaminarla
@@ -2839,6 +2996,24 @@ function startPoint(){
   tbUpdateHud();
   spawnTennisBall(null, null);
 }
+function ballWentOut(tb){
+  if (!tb) return false;
+  if (tb.out) return true;
+  if (tb.tx == null || tb.ty == null) return false;
+  var g = computeCourtGeom();
+  return (tb.tx < g.xSglL || tb.tx > g.xSglR || tb.ty > g.y1);   // pasillo o pasado el fondo
+}
+function winPointOut(){
+  if (!state.point || state.point.over) return;
+  state.point.over = true;
+  state.tbToken = (state.tbToken || 0) + 1;
+  state.tb = null;
+  state.readOut = true;                 // el mensaje dira "FUERA / bien leido"
+  soundClick();
+  adaptSpeed(true);
+  awardPoint("me");
+  afterPoint(true);
+}
 function winPoint(){
   if (!state.point || state.point.over) return;
   state.point.over = true;
@@ -2871,6 +3046,7 @@ function loop(ts){
   state.lastTs = ts;
   ctx.clearRect(0, 0, CW, CH);
   drawCourt();
+  drawBounces();
   if (state.hawk) drawHawk();
   if (state.cue) drawCue();
 
@@ -2905,13 +3081,17 @@ function loop(ts){
 
   if (state.active && state.tbMode && state.tb){
     var tb = state.tb;
+    var _px = tb.x, _py = tb.y;
     tb.x += tb.vx * dt; tb.y += tb.vy * dt;
+    bounceCheck(tb, _px, _py);
     tb.trail.push({ x: tb.x, y: tb.y }); if (tb.trail.length > TRAIL_LEN) tb.trail.shift();
     drawTennisBall(tb);
     var mg = tb.r + 6;
     if (tb.x < -mg || tb.x > CW + mg || tb.y < -mg || tb.y > CH + mg){
+      var wasOut = ballWentOut(tb);   // fuera = su bote cae fuera de las lineas, lleve flag o no
       state.tb = null;
-      losePoint("fuera");            // salio sin tocarla -> punto del rival
+      if (wasOut) winPointOut();     // la dejaste y botaba fuera -> punto tuyo, bien leido
+      else losePoint("fuera");       // botaba dentro y la dejaste -> punto del rival
     }
   }
 
