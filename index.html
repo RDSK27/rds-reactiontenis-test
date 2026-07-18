@@ -395,7 +395,7 @@ table.rk tr.top3 td{background:#f7efe7;}
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div></div>
       <button class="btn rank" id="btn-goranking">&#127942; RANKING</button>
       </div>
-      <div class="app-ver">rtenis-v159</div>
+      <div class="app-ver">rtenis-v160</div>
     </div>
   </section>
 
@@ -1260,6 +1260,9 @@ function showEnd1v1(){
   }
 }
 function showPt1v1(winner, why){
+  if (g1.cdTimer){ clearInterval(g1.cdTimer); g1.cdTimer = 0; }   // no puede quedar una cuenta atras viva
+  g1.cd = false;
+  var cdEl = $("cd-1v1"); if (cdEl) cdEl.style.display = "none";
   var txtWhy = WHY1V1[why] || "";
   for (var n = 1; n <= 2; n++){
     var box = $("pt1v1-" + n); if (!box) continue;
@@ -1449,7 +1452,7 @@ function tapCourt2(x, y){
   tap1v1(x, y);
 }
 function tap1v1(clientX, clientY){
-  if (!g1.on || g1.over || !canvas1v1) return;
+  if (!g1.on || g1.over || g1.cd || !canvas1v1) return;   // durante la cuenta atras no se admite ningun toque
   var rect = canvas1v1.getBoundingClientRect();
   var px = clientX - rect.left, py = clientY - rect.top;
   var gg = computeCourtGeom();
