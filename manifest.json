@@ -1,26 +1,16 @@
 {
-  "name": "Reaction Tenis",
+  "name": "RDS Reaction Tenis",
   "short_name": "Reaction Tenis",
-  "description": "Test de reaccion y lectura tactica en tenis - RDS Psicologia Deportiva",
-  "lang": "es",
-  "start_url": "./",
+  "description": "Entrenamiento de atencion, emociones e inteligencia tactica en el tenis. Suite RDS Psicologia Deportiva.",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#c05c34",
+  "theme_color": "#c05c34",
   "icons": [
-    {
-      "src": "assets/icon.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    }
+    { "src": "assets/logo.webp", "sizes": "256x256", "type": "image/webp", "purpose": "any" },
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
