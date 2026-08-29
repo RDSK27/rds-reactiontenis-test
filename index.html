@@ -273,12 +273,15 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 .res-top::before{top:8px;bottom:0;}
 .res-bot::before{top:0;bottom:16px;}
 .res-bot::after{content:"";position:absolute;top:0;left:7%;right:7%;height:3px;margin-top:-1.5px;background:var(--rds-red);}
-.res-actions{display:flex;flex-direction:row;align-items:stretch;justify-content:center;gap:8px;margin-top:8px;}
-.res-actions button{flex:1 1 0;min-width:0;width:auto;padding:10px 6px;font-size:12.5px;font-weight:800;letter-spacing:0.06em;cursor:pointer;text-transform:uppercase;border:2px solid var(--rds-red);}
+.res-actions{display:flex;flex-direction:row;align-items:stretch;justify-content:center;gap:8px;margin-top:10px;}
+.res-actions button{flex:1 1 0;min-width:0;width:auto;padding:7px 6px;font-size:0.65rem;font-weight:900;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;border:none;border-radius:4px;}
+.save-row-inner{display:flex;align-items:stretch;justify-content:center;gap:8px;width:calc(60% + 92px);max-width:100%;}
+.save-row-inner .res-save-btn{flex:1 1 0;max-width:60%;}
+.save-row-inner .res-rank-btn{flex:none;width:84px;}
 .res-save-btn{background:var(--rds-red);color:#fff;}
-.res-save-btn[disabled]{opacity:.4;cursor:default;}
-.res-rank-btn{background:#fff;color:var(--rds-red);}
-.res-save-btn.saved{background:#9a9a9a;border-color:#9a9a9a;color:#fff;opacity:1;cursor:default;}
+.res-save-btn[disabled]{opacity:1;background:#9a9a9a;}
+.res-rank-btn{background:#111;color:#fff;}
+.res-save-btn.saved{background:#9a9a9a;color:#fff;opacity:1;cursor:default;}
 .stat-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin-top:8px;background:#e0e0e0;border:1px solid #dddddd;}
 .stat-card{border:none;background:#fff;text-align:center;padding:12px 4px;}
 .stat-card .v{font-weight:900;font-size:26px;line-height:1;color:#111;}
@@ -598,6 +601,9 @@ table.rk tr.top3 td{background:#f7efe7;}
       <div id="rk-table"></div>
     </div>
     <div class="footer-actions" style="padding:0;border-top:none;margin-top:auto;">
+      <div id="rk-save-row" style="display:none; justify-content:center; padding:8px 16px 0;">
+        <button id="btnGuardarRank" style="width:60%; padding:8px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; background:var(--rds-red); color:#fff; border:none; cursor:pointer; border-radius:4px;" aria-label="Guardar mi marca" title="Guardar mi marca">Guardar mi marca</button>
+      </div>
       <div style="display:flex; justify-content:center; gap:8px; padding:8px 16px 8px;">
         <button id="btn-hide-repeated" style="width:47%; padding:7px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; background:#111; color:#fff; border:none; cursor:pointer; border-radius:4px;" onclick="toggleHideRepeated()">Mostrar repetidos</button>
         <button id="btn-rank-order" class="rk-ball-btn" style="width:47%; padding:7px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; border:none; cursor:pointer; border-radius:4px;" onclick="toggleRankOrder()">AN&#193;LISIS</button>
@@ -741,6 +747,7 @@ var state = {
 
 var rankFilter = { mode: "extremo", count: 4, penaliza: true, matchMode: "tactica", order: "resultado" };
 var savedName = "";
+var rtSaved, rtPendingSave = null;
 function buildPlayerName(ini, dep){
   var i = (ini || "").trim().toUpperCase().replace(/[^A-Z]/g, "").slice(0,3);
   if (!i) i = "RDS";
@@ -1581,21 +1588,23 @@ function finishPeloteo(why){
   html += '<div class="res-q"><div class="res-v">' + sBest + '</div><div class="res-sub">Mejor</div></div>';
   html += '</div></div>';
   var canSave = (gp.hits > 0);
-  html += '<div class="res-actions">';
+  html += '<div class="res-actions"><div class="save-row-inner">';
   html += '<button id="res-save" class="res-save-btn"' + (canSave ? "" : " disabled") + '>GUARDAR RESULTADO</button>';
-  html += '<button id="res-ranking" class="res-rank-btn">RANKING</button>';
+  html += '<button id="res-ranking" class="res-rank-btn">RANKING</button></div>';
   html += '</div><div id="save-feedback" class="tag-line"></div>';
   $("results-pad").innerHTML = html;
   show("screen-results");
   var rk = $("res-ranking"); if (rk) rk.addEventListener("click", openRanking);
   var sv = $("res-save");
   if (sv && canSave){
+    rtSaved = false;
+    rtPendingSave = function(){ return savePelScore(getHomeName() || "RDS", a); };
     sv.addEventListener("click", function(){
       var nm = getHomeName() || "RDS";
       sv.disabled = true; sv.classList.add("saved"); sv.textContent = "Guardado";
       savePelScore(nm, a).catch(function(){});
     });
-  }
+  } else { rtSaved = undefined; rtPendingSave = null; }
 }
 function savePelScore(name, a){
   return pushScore({
@@ -1726,21 +1735,23 @@ function finishInfinito(why){
   html += '<div class="res-q"><div class="res-v">' + sBest + '</div><div class="res-sub">Mejor</div></div>';
   html += '</div></div>';
   var canSave = (gi.hits > 0);
-  html += '<div class="res-actions">';
+  html += '<div class="res-actions"><div class="save-row-inner">';
   html += '<button id="res-save" class="res-save-btn"' + (canSave ? "" : " disabled") + '>GUARDAR RESULTADO</button>';
-  html += '<button id="res-ranking" class="res-rank-btn">RANKING</button>';
+  html += '<button id="res-ranking" class="res-rank-btn">RANKING</button></div>';
   html += '</div><div id="save-feedback" class="tag-line"></div>';
   $("results-pad").innerHTML = html;
   show("screen-results");
   var rk = $("res-ranking"); if (rk) rk.addEventListener("click", openRanking);
   var sv = $("res-save");
   if (sv && canSave){
+    rtSaved = false;
+    rtPendingSave = function(){ return saveInfScore(getHomeName() || "RDS", a); };
     sv.addEventListener("click", function(){
       var nm = getHomeName() || "RDS";
       sv.disabled = true; sv.classList.add("saved"); sv.textContent = "Guardado";
       saveInfScore(nm, a).catch(function(){});
     });
-  }
+  } else { rtSaved = undefined; rtPendingSave = null; }
 }
 function saveInfScore(name, a){
   return pushScore({
@@ -2957,9 +2968,9 @@ function finishTennis(){
                     + '<button id="res-emo" class="res-emo-btn">MAPA EMOCIONAL</button></div>';
   var isJuego = (state.mode === "normal");            // JUEGO no tiene pestana en el ranking
   var canSave = (a.n > 0) && !isJuego;
-  html += '<div class="res-actions">';
+  html += '<div class="res-actions"><div class="save-row-inner">';
   html += '<button id="res-save" class="res-save-btn"' + (canSave ? '' : ' disabled') + '>GUARDAR RESULTADO</button>';
-  html += '<button id="res-ranking" class="res-rank-btn">RANKING</button>';
+  html += '<button id="res-ranking" class="res-rank-btn">RANKING</button></div>';
   html += '</div>';
   html += '<div id="save-feedback" class="tag-line"></div>';
   $("results-pad").innerHTML = html;
@@ -2967,6 +2978,8 @@ function finishTennis(){
   var rkBtn = $("res-ranking"); if (rkBtn) rkBtn.addEventListener("click", openRanking);
   var saveBtn = $("res-save");
   if (saveBtn && canSave){
+    rtSaved = false;
+    rtPendingSave = function(){ return saveTennisScore(getHomeName() || "RDS", a); };
     saveBtn.addEventListener("click", function(){
       var nm = getHomeName() || "RDS";
       saveBtn.disabled = true; saveBtn.classList.add("saved"); saveBtn.textContent = "Guardado";
@@ -2976,7 +2989,7 @@ function finishTennis(){
         try { console.warn("save error", err); } catch(e2){}
       });
     });
-  }
+  } else { rtSaved = undefined; rtPendingSave = null; }
   if (!canSave && !isJuego && $("save-feedback")) $("save-feedback").textContent = "Sin bolas tocadas: no se guarda";
   showFinishTransition("PARTIDO FINALIZADO");
   if (canChart){
@@ -3728,9 +3741,9 @@ function renderResults(isLimitFail, isNull, nullReason){
   }
 
   if (agg.total > 0){
-    html += '<div class="res-actions">';
+    html += '<div class="res-actions"><div class="save-row-inner">';
     html += '<button id="res-save" class="res-save-btn"' + (state.noSave ? ' disabled' : '') + '>GUARDAR RESULTADO</button>';
-    html += '<button id="res-ranking" class="res-rank-btn">RANKING</button>';
+    html += '<button id="res-ranking" class="res-rank-btn">RANKING</button></div>';
     html += '</div>';
     html += '<div id="save-feedback" class="tag-line"></div>';
   }
@@ -3741,12 +3754,14 @@ function renderResults(isLimitFail, isNull, nullReason){
   var rkBtn = $("res-ranking"); if (rkBtn) rkBtn.addEventListener("click", openRanking);
   var saveBtn = $("res-save");
   if (saveBtn && !state.noSave){
+    rtSaved = false;
+    rtPendingSave = function(){ return saveScore(savedName ? savedName : "RDS", agg); };
     saveBtn.addEventListener("click", function(){
       var nm = savedName ? savedName : "RDS";
       saveBtn.disabled = true; saveBtn.classList.add("saved"); saveBtn.textContent = "Guardado";
       saveScore(nm, agg).catch(function(){});
     });
-  }
+  } else { rtSaved = undefined; rtPendingSave = null; }
   if (state.noSave && $("save-feedback")) $("save-feedback").textContent = "No se guarda por demasiados fallos";
 }
 
@@ -3773,9 +3788,9 @@ function renderLimite(reason){
     html += '<div class="chart-card"><canvas id="rt-chart" class="rt-chart"></canvas></div>';
   }
 
-  html += '<div class="res-actions">';
+  html += '<div class="res-actions"><div class="save-row-inner">';
   html += '<button id="res-save" class="res-save-btn">GUARDAR RESULTADO</button>';
-  html += '<button id="res-ranking" class="res-rank-btn">RANKING</button>';
+  html += '<button id="res-ranking" class="res-rank-btn">RANKING</button></div>';
   html += '</div>';
   html += '<div id="save-feedback" class="tag-line"></div>';
 
@@ -3784,6 +3799,8 @@ function renderLimite(reason){
   var rkBtn = $("res-ranking"); if (rkBtn) rkBtn.addEventListener("click", openRanking);
   var saveBtn = $("res-save");
   if (saveBtn){
+    rtSaved = false;
+    rtPendingSave = function(){ return saveScoreLimite(savedName ? savedName : "RDS", agg); };
     saveBtn.addEventListener("click", function(){
       var nm = savedName ? savedName : "RDS";
       saveBtn.disabled = true; saveBtn.classList.add("saved"); saveBtn.textContent = "Guardado";
@@ -3795,6 +3812,7 @@ function renderLimite(reason){
 function numOk(v){ return (typeof v === "number" && isFinite(v)) ? v : 0; }
 
 function pushScore(rec){
+  rtSaved = true;
   // respaldo local (offline / sin Firebase)
   try {
     var key = lbKey(rec.mode, rec.count, rec.penaliza);
@@ -4019,6 +4037,23 @@ function refreshModeDesc(){
 }
 function applyJuegoCountUI(isJuego){ /* SET4/SET6 vive ahora en el panel de modo */ }
 
+function rtUpdateRankSaveBtn(){
+  var row = document.getElementById("rk-save-row");
+  var g = document.getElementById("btnGuardarRank");
+  if (!row || !g) return;
+  if (rtSaved === false){
+    row.style.display = "flex"; g.disabled = false;
+    g.style.background = "var(--rds-red)"; g.style.cursor = "pointer";
+    g.textContent = "Guardar mi marca";
+  } else if (rtSaved === true){
+    row.style.display = "flex"; g.disabled = true;
+    g.style.background = "#9A9A9A"; g.style.cursor = "default";
+    g.textContent = "Guardado";
+  } else {
+    row.style.display = "none";
+  }
+}
+
 // ---------- Init ----------
 function openRanking(){
   var m = state.mode;
@@ -4033,6 +4068,7 @@ function openRanking(){
   hideRepeated = true;
   var dd = $("btn-hide-repeated");
   if (dd){ dd.textContent = "Mostrar repetidos"; }
+  rtUpdateRankSaveBtn();
   show("screen-ranking");
   loadRanking();
 }
@@ -4206,6 +4242,17 @@ function init(){
     dcb[dc].addEventListener("click", (function(v){ return function(){ d1v1.count = v; syncD1v1(); }; })(parseInt(dcb[dc].getAttribute("data-c1v1"),10)));
   }
   $("btn-goranking").addEventListener("click", openRanking);
+
+  var bgr = $("btnGuardarRank");
+  if (bgr) bgr.addEventListener("click", function(){
+    if (rtSaved !== false || typeof rtPendingSave !== "function") return;
+    var p = rtPendingSave;
+    this.disabled = true;
+    this.style.background = "#9A9A9A"; this.style.cursor = "default";
+    this.textContent = "Guardado";
+    try { var pr = p(); if (pr && pr.catch) pr.catch(function(){}); } catch (e) {}
+    if (typeof renderRanking === "function") renderRanking();
+  });
 
   // nombre para el ranking: iniciales + deporte -> INI-DEP
   var sIni = safeGet("rtenis_initials");
