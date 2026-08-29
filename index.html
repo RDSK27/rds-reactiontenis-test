@@ -59,7 +59,11 @@ header img{width:100%;height:auto;max-height:22vh;object-fit:cover;display:block
 #screen-home .block-label{margin:8px 0 6px;}
 #screen-home #mode-section,#screen-home #count-section{margin-top:10px;}
 #screen-home #matchmode-section{margin-top:10px;margin-bottom:18px;}
-#screen-home .opt{height:36px;padding:0 4px;box-sizing:border-box;white-space:nowrap;font-size:12px;line-height:36px;}
+#screen-home .opt{height:36px;padding:0 4px;box-sizing:border-box;white-space:nowrap;font-size:12px;line-height:36px;background:transparent;color:#1a1a1a;border-right:3px solid rgba(0,0,0,0.35);}
+#screen-home .opt-row{border:0;border-top:4px solid #b03020;border-radius:0;background:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.20)),var(--ball);background-size:cover;background-position:center;}
+#screen-home .opt:last-child{border-right:0;}
+#screen-home .opt small{color:#3a3a2a;}
+#screen-home .opt.sel{background:var(--rds-red);color:#fff;}
 
 /* SELECTORES SEGMENTADOS */
 .block-label{font-size:11px;letter-spacing:3px;font-weight:700;color:#aaaaaa;text-transform:uppercase;text-align:center;margin:16px 0 7px;}
@@ -400,7 +404,7 @@ table.rk tr.top3 td{background:#f7efe7;}
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div></div>
       <button class="btn rank" id="btn-goranking">&#127942; RANKING</button>
       </div>
-      <div class="app-ver">rtenis-v165</div>
+      <div class="app-ver">rtenis-v166</div>
     </div>
   </section>
 
