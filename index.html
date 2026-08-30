@@ -47,18 +47,18 @@ header{width:100%;flex-shrink:0;background:#000000;border-bottom:4px solid #c05c
 header img{width:100%;height:auto;max-height:22vh;object-fit:cover;display:block;margin-bottom:0;}
 .subtitle{display:block;width:100%;box-sizing:border-box;font-size:0.58rem;letter-spacing:0.14em;color:#cfcfcf;text-transform:none;padding:8px 0 8px;text-align:center;background:transparent;}
 .home-title{
-  font-weight:900;font-size:30px;line-height:1;letter-spacing:2px;
-  text-align:center;text-transform:uppercase;color:#111111;margin:14px 0 2px;
+  font-weight:900;font-size:2rem;line-height:1;letter-spacing:0.08em;
+  text-align:center;text-transform:uppercase;color:#111111;margin:0 0 2px;
 }
 /* SCREENS */
 .screen{flex:1 1 auto;display:none;flex-direction:column;min-height:0;}
 .screen.active{display:flex;}
 .pad{padding:10px 16px 10px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #screen-home{background-color:#c7cbcf;background-image:radial-gradient(70% 50% at 50% 38%,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#e4e7ea 0%,#c7cbcf 60%,#b0b4b8 100%);}
-#screen-home .pad{display:flex;flex-direction:column;flex:1;padding-top:8px;}
+#screen-home .pad{display:flex;flex-direction:column;flex:1;padding-top:8px;gap:8px;}
 #screen-home .block-label{margin:8px 0 6px;}
-#screen-home #mode-section,#screen-home #count-section{margin-top:10px;}
-#screen-home #matchmode-section{margin-top:10px;margin-bottom:18px;}
+#screen-home #mode-section,#screen-home #count-section{margin-top:0;}
+#screen-home #matchmode-section{margin-top:0;margin-bottom:0;}
 #screen-home .opt{height:36px;padding:0 4px;box-sizing:border-box;white-space:nowrap;font-size:12px;line-height:36px;background:transparent;color:#1a1a1a;border-right:3px solid rgba(0,0,0,0.35);}
 #screen-home .opt-row{border:0;border-top:4px solid #b03020;border-radius:0;background:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.20)),var(--ball);background-size:cover;background-position:center;}
 #screen-home .opt:last-child{border-right:0;}
@@ -105,7 +105,7 @@ header img{width:100%;height:auto;max-height:22vh;object-fit:cover;display:block
 .btn.rank{background:#fff;color:var(--rds-red);border:2px solid var(--rds-red);font-size:14px;}
 #res-home,#res-again,#rk-home,#rk-repeat{background:#111;color:#fff;border:none;}
 #btn-start,#btn-goranking{width:60%;margin-left:auto;margin-right:auto;}
-.home-logo{display:block;width:110px;max-width:36%;height:auto;margin:2px auto 6px;}
+.home-logo{display:block;width:110px;width:min(30vw,110px,13svh);height:auto;margin:0 auto 2px;}
 .home-name-wrap{width:52%;margin:18px auto 0;display:flex;flex-direction:column;align-items:center;}
 .home-name-input{width:100%;box-sizing:border-box;border:2px solid var(--rds-red);border-radius:5px;padding:8px 10px;text-align:center;font-weight:700;font-size:14px;letter-spacing:1px;color:#111;text-transform:uppercase;background:#fff;}
 .home-name-input:focus{outline:none;}
@@ -405,7 +405,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v168</div>
+      <div class="app-ver">v169</div>
       </div>
     </div>
   </section>
