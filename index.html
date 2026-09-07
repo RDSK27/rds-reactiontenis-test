@@ -408,7 +408,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v178</div>
+      <div class="app-ver">v179</div>
       </div>
     </div>
   </section>
@@ -2335,11 +2335,12 @@ function makeServeShot(){
 }
 /* Saque del jugador (solo Set/Partido, en sus juegos de saque): la bola
    sale de MI linea de fondo (abajo) hacia el cuadro de saque del rival
-   (arriba) como animacion - no se toca, no puntua. Al llegar al cuadro,
-   llama a cb() y ahi empieza el peloteo normal (el rival "devuelve" y la
-   bola vuelve hacia mi). Mantiene la premisa del test intacta: lo unico
-   que reacciono sigue viniendo del rival. */
-function startServeOut(cb){
+   (arriba) como animacion - no se toca, no puntua. Cuando llega al cuadro,
+   el rival "devuelve" desde ESE MISMO punto (spawnTennisBall(...,true) en
+   el loop) y a partir de ahi el peloteo es normal, sin cortes de
+   trayectoria. Mantiene la premisa del test intacta: lo unico que
+   reacciono sigue viniendo del rival. */
+function startServeOut(){
   var g = computeCourtGeom();
   var halfW = (g.xSglR - g.xSglL) * 0.5;
   var right = ((state.servePoint || 0) % 2 === 0);         // mismo lado que usara makeServeShot
@@ -2354,8 +2355,7 @@ function startServeOut(cb){
   var r = Math.max(6, Math.round(g.base * TB_RADIUS_FACTOR));
   soundRacket();
   state.serveAnim = { x: ox, y: oy, vx: dx / len * V, vy: dy / len * V, r: r,
-                      tx: boxX, ty: boxY, trail: [], tAppear: performance.now(),
-                      cb: (typeof cb === "function") ? cb : null };
+                      tx: boxX, ty: boxY, trail: [], tAppear: performance.now() };
 }
 
 // ---------- Bola sorpresa: ruptura del patron en Juego/Set/Partido ----------
@@ -2521,12 +2521,12 @@ function makeStyleShot(){
   var d = s.dests[Math.floor(Math.random() * s.dests.length)];
   return { g: g, o: o, d: d };
 }
-function spawnTennisBall(fromX, fromY){
+function spawnTennisBall(fromX, fromY, serveReturn){
   if (state.point && state.point.over) return;
-  if (fromX == null || fromY == null) state.bounces = [];   // primera bola del punto: limpia los botes anteriores
+  if (serveReturn || fromX == null || fromY == null) state.bounces = [];   // primera bola del punto: limpia los botes anteriores
   var gGeom = computeCourtGeom();
   var depthBias = 0.5;
-  if (fromX != null && fromY != null){
+  if (fromX != null && fromY != null && !serveReturn){
     depthBias = (fromY - gGeom.cy) / (gGeom.y1 - gGeom.cy);
     if (depthBias < 0) depthBias = 0;
     if (depthBias > 1) depthBias = 1;
@@ -2535,7 +2535,13 @@ function spawnTennisBall(fromX, fromY){
   }
   state.styleSpeed = 1;
   var shot;
-  if (fromX == null || fromY == null) shot = makeServeShot();
+  if (serveReturn){
+    // el rival devuelve MI saque desde el punto exacto donde ha botado (fromX,fromY):
+    // sin salto de trayectoria, y a partir de aqui el peloteo sigue normal.
+    var sRet = computeSites(gGeom);
+    shot = { g: gGeom, o: { x: fromX, y: fromY }, d: sRet.dests[Math.floor(Math.random() * sRet.dests.length)] };
+  }
+  else if (fromX == null || fromY == null) shot = makeServeShot();
   else if (state.point && state.point.tactic) shot = makeTacticShot();
   else if (state.point && state.point.style) shot = makeStyleShot();
   else shot = pickTennisShot(0.5);   // Auto: profundidad neutra (no depende de mi golpe; la velocidad si)
@@ -2549,7 +2555,7 @@ function spawnTennisBall(fromX, fromY){
     var tnorm = diag > 0 ? Math.min(1, dd / diag) : 0.5;
     delay = 100 + tnorm * 700;                     // 0,1s (cerca) .. 0,8s (lejos)
   }
-  shot.cued = (fromX != null && fromY != null);
+  shot.cued = (fromX != null && fromY != null && !serveReturn);
   // regla "bola fuera": algunas bolas del rally se van fuera; si las dejas, ganas el punto.
   if (shot.cued && !shot.serve && OUT_BALL_RATE > 0 && Math.random() < OUT_BALL_RATE){
     var gO = shot.g, dO = shot.d;
@@ -3099,7 +3105,7 @@ function startPoint(){
   hideCenter();
   tbUpdateHud();
   if (state.mode !== "normal" && state.server === "me"){
-    startServeOut(function(){ spawnTennisBall(null, null); });   // saco yo: animacion hacia el rival, luego empieza el peloteo
+    startServeOut();   // saco yo: animacion hacia el rival; el loop lanza la devolucion desde donde bota
   } else {
     spawnTennisBall(null, null);
   }
@@ -3209,9 +3215,9 @@ function loop(ts){
     sa.trail.push({ x: sa.x, y: sa.y }); if (sa.trail.length > TRAIL_LEN) sa.trail.shift();
     drawTennisBall(sa);
     if (sa.y <= sa.ty){                       // la bola de saque llego al cuadro del rival
+      var _rx = sa.tx, _ry = sa.ty;
       state.serveAnim = null;
-      var saCb = sa.cb; sa.cb = null;
-      if (saCb) saCb();                       // arranca el peloteo (spawnTennisBall)
+      spawnTennisBall(_rx, _ry, true);        // el rival devuelve MI saque desde ese mismo punto (sin teleport)
     }
   }
 
