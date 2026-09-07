@@ -405,7 +405,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v170</div>
+      <div class="app-ver">v171</div>
       </div>
     </div>
   </section>
@@ -529,7 +529,7 @@ table.rk tr.top3 td{background:#f7efe7;}
     <div class="hud">
       <div class="stat" id="stat-idx"><span id="hud-idx">0</span><small id="hud-idx-lbl">ENSAYOS</small></div>
       <div class="lives" id="hud-lives"><span class="life"></span><span class="life"></span><span class="life"></span></div>
-      <div class="crono" id="hud-crono" style="display:none;"><span id="hud-crono-val">0:00.00</span></div>
+      <div class="crono" id="hud-crono" style="display:none;"><small id="hud-serve-lbl" style="font-size:9px;font-weight:800;color:#999999;letter-spacing:0.5px;margin-right:6px;text-transform:uppercase;"></small><span id="hud-crono-val">0:00.00</span></div>
       <div class="stat" id="stat-trial"><span id="hud-trial">--</span><small id="hud-trial-lbl">MEDIA MS</small></div>
       <div class="hud-progress" id="hud-progress"><div id="game-progress-fill"></div></div>
     </div>
@@ -2011,6 +2011,7 @@ function beginPlay(token){
   state.tbBalls = [];                                // instrumentacion bola a bola
   state.speedFactor = loadSpeed();   // retoma la dificultad de la ocasion anterior
   state.servePoint = 0;              // saque: alterna derecha/izquierda cada punto
+  state.server = "rival";            // empieza sacando el rival; alterna cada juego (winGame/winSet)
   state.gameplan = null; state.gamePlanKey = null;   // plan del rival por juego
   initRival();                                       // rival adaptativo (SET/PARTIDO)
   state.gp = { me: 0, rival: 0 };
@@ -2581,6 +2582,8 @@ function tbUpdateHud(){
   if (idx) idx.textContent = leftStr();          // izquierda: sets / juegos
   if (cr) cr.style.display = "";                   // centro: marcador del juego
   if (crv) crv.textContent = gameScoreStr();
+  var sl = $("hud-serve-lbl");                      // quien saca (solo Set/Partido: en Juego no hay alternancia)
+  if (sl) sl.textContent = (state.mode === "normal") ? "" : ((state.server === "me") ? "Saco yo" : "Saca rival");
   if (trv) trv.textContent = runningAvgRT();       // derecha: media de reaccion acumulada
   var fill = $("game-progress-fill");
   if (fill){ var pt = state.point; fill.style.width = (pt && pt.n) ? Math.round(100 * pt.hits / pt.n) + "%" : "0%"; }
@@ -2605,6 +2608,7 @@ function winGame(who){
   state.lastEvent = "game"; state.lastWinner = who;
   var myGamePts = (state.gp && state.gp.me) || 0;   // mis puntos en el juego (0/1/2/3+ = 0/15/30/40)
   state.gp = { me: 0, rival: 0 };
+  state.server = (state.server === "rival") ? "me" : "rival";   // el saque cambia de lado cada juego
   state.lastGameStyle = state.gameplan ? state.gameplan.style : null;
   state.lastGameTactic = state.gameplan ? state.gameplan.tactic : null;
   if (state.mode === "normal"){ endMatch(who); return; }
@@ -2626,6 +2630,10 @@ function winSet(who){
   if (state.inTiebreak){
     if (who === "me"){ gmMe = state.count + 1; gmRv = state.count; }
     else { gmRv = state.count + 1; gmMe = state.count; }
+    /* el tie-break gana el set sin pasar por winGame() (que es donde se
+       alterna el saque cada juego): aqui se hace ese cambio extra,
+       igual que la regla real de tenis tras un desempate. */
+    state.server = (state.server === "rival") ? "me" : "rival";
   }
   state.setScores.push([gmMe, gmRv]);
   state.inTiebreak = false; state.tbp = { me: 0, rival: 0 };
@@ -3010,7 +3018,10 @@ function startPoint(){
   state.cue = null;
   state.point = { n: 4 + Math.floor(Math.random() * 7), hits: 0, over: false };  // 4..10 bolas
   var gk = gameKey();                                  // unidad = juego: plan constante dentro del juego
-  if (gk !== state.gamePlanKey){ state.gamePlanKey = gk; setGamePlan(); }
+  if (gk !== state.gamePlanKey){
+    state.gamePlanKey = gk; setGamePlan();
+    state.servePoint = 0;   // cada juego (y cada tie-break) empieza el lado del saque desde cero
+  }
   if (!state.gameplan) setGamePlan();
   state.point.style  = state.gameplan.style;
   state.point.tactic = state.gameplan.tactic;
