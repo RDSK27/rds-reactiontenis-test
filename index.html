@@ -436,7 +436,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v185</div>
+      <div class="app-ver">v186</div>
       </div>
     </div>
   </section>
@@ -2741,6 +2741,7 @@ function launchTennisBall(shot){
     tb.floorBounces = 0;
     tb.postBudget = g.ch * 1.05;                     // recorrido disponible tras el 1er bote (lo comen los rebotes)
     tb.wallL = g.wallXL; tb.wallR = g.wallXR; tb.wallT = g.wallT; tb.wallB = g.wallB;
+    tb.netY = g.cy;                                  // la red: tope para que la bola no vuelva al campo rival
   }
 }
 function drawTennisBall(tb){
@@ -3324,6 +3325,11 @@ function stepPadelBall(tb, dt){
   else if (tb.x > tb.wallR - tb.r){ tb.x = tb.wallR - tb.r; tb.vx = -Math.abs(tb.vx); hitWall = true; }
   if (tb.y < tb.wallT + tb.r){ tb.y = tb.wallT + tb.r; tb.vy = Math.abs(tb.vy); hitWall = true; }
   else if (tb.y > tb.wallB - tb.r){ tb.y = tb.wallB - tb.r; tb.vy = -Math.abs(tb.vy); hitWall = true; }
+  // la RED: una vez la bola esta en mi campo, no vuelve al del rival. Rebota en la red
+  // (que absorbe mucha energia) y se queda en mi lado hasta el 2o bote.
+  if (tb.floorBounces >= 1 && tb.vy < 0 && tb.y < tb.netY + tb.r){
+    tb.y = tb.netY + tb.r; tb.vy = Math.abs(tb.vy) * 0.5; tb.vx *= 0.7; hitWall = true;
+  }
   if (hitWall){ tb.vx *= 0.86; tb.vy *= 0.86; tb.wallHits = (tb.wallHits || 0) + 1; }
 
   tb.trail.push({ x: tb.x, y: tb.y }); if (tb.trail.length > TRAIL_LEN) tb.trail.shift();
