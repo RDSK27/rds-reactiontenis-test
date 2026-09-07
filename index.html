@@ -37,6 +37,12 @@ html.disc-padel header img{filter:hue-rotate(183deg) saturate(1.1);}
 html.disc-padel #btn-start{background:radial-gradient(circle at 35% 30%, #5aa0d0 0%, #2f6fa2 45%, #1e4e77 100%);}
 html.disc-padel #read-panel .read-opt{border-color:#2f6fa2;color:#255d8f;}
 html.disc-padel #read-panel .read-opt.sel{background:#2f6fa2;color:#fff;}
+html.disc-padel .rank-screen-title{border-bottom-color:#2f6fa2;}
+html.disc-padel .rank-tab.active,html.disc-padel .rank-tab.sel{background:#2f6fa2;border-color:#2f6fa2;}
+html.disc-padel .rank-full-row.rank-full-me{box-shadow:inset 3px 0 0 #2f6fa2;}
+html.disc-padel .rank-full-row.rank-full-me .rank-full-name{color:#2f6fa2;}
+html.disc-padel .rank-full-ms{color:#2f6fa2;}
+html.disc-padel .results-actions{border-top-color:#2f6fa2;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;overscroll-behavior:none;touch-action:manipulation;background:#000000;}
 body{
@@ -436,7 +442,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v188</div>
+      <div class="app-ver">v189</div>
       </div>
     </div>
   </section>
@@ -616,6 +622,10 @@ table.rk tr.top3 td{background:#f7efe7;}
   <section id="screen-ranking" class="screen">
     <div class="pad">
       <div class="rank-screen-title">Ranking completo</div>
+      <div class="rank-tabs" id="rk-disc">
+        <div class="opt rank-tab sel" data-disc="tenis">TENIS</div>
+        <div class="opt rank-tab" data-disc="padel">P&#193;DEL</div>
+      </div>
       <div class="rank-tabs" id="rk-mode">
         <div class="opt rank-tab" data-mode="infinito">&#8734;</div>
         <div class="opt rank-tab" data-mode="peloteo">PELOTEO</div>
@@ -777,7 +787,7 @@ var state = {
   cronoElapsed: 0
 };
 
-var rankFilter = { mode: "extremo", count: 4, penaliza: true, matchMode: "tactica", order: "resultado" };
+var rankFilter = { disc: "tenis", mode: "extremo", count: 4, penaliza: true, matchMode: "tactica", order: "resultado" };
 var savedName = "";
 var rtSaved, rtPendingSave = null;
 function buildPlayerName(ini, dep){
@@ -4177,6 +4187,7 @@ function numOk(v){ return (typeof v === "number" && isFinite(v)) ? v : 0; }
 
 function pushScore(rec){
   rtSaved = true;
+  if (rec.disc == null) rec.disc = (state.disc === "padel") ? "padel" : "tenis";   // disciplina: separa rankings tenis/padel
   // respaldo local (offline / sin Firebase)
   try {
     var key = lbKey(rec.mode, rec.count, rec.penaliza);
@@ -4372,6 +4383,7 @@ function renderRanking(){
     list = safeGet(lbKey(rankFilter.mode, free ? 0 : rankFilter.count, free ? true : rankFilter.penaliza));
     if (!free && rankFilter.mode !== "normal"){ list = list.filter(function(r){ return (r.matchMode || "azar") === rankFilter.matchMode; }); }
   }
+  list = list.filter(function(r){ return ((r.disc === "padel") ? "padel" : "tenis") === rankFilter.disc; });   // tenis / padel
   list = list.map(normScores);
   list.sort(rankSorter());
   renderRankList(list, host, rankFilter.mode);
@@ -4420,6 +4432,7 @@ function rtUpdateRankSaveBtn(){
 
 // ---------- Init ----------
 function openRanking(){
+  rankFilter.disc = (state.disc === "padel") ? "padel" : "tenis";   // abre el ranking de lo que estas jugando
   var m = state.mode;
   rankFilter.mode = (m === "normal") ? "extremo" : m;   // JUEGO ya no tiene pestana: cae en SET
   rankFilter.count = state.count ? state.count : 4;
@@ -4621,6 +4634,7 @@ function init(){
   if (rsub2){ rsub2.addEventListener("change", function(){ state.playStyle = rsub2.value; if (state.mode === "normal") setGamePlan(); }); }
   refreshRivalSub();
 
+  bindSelector("rk-disc", "data-disc", function(v){ rankFilter.disc = v; renderRanking(); });
   bindSelector("rk-mode", "data-mode", function(v){ rankFilter.mode = v; applyRankRows(); renderRanking(); });
   bindSelector("rk-count", "data-count", function(v){ rankFilter.count = parseInt(v,10); renderRanking(); });
   bindSelector("rk-matchmode", "data-matchmode", function(v){ rankFilter.matchMode = v; syncRankOrderBtn(); renderRanking(); });
@@ -4710,6 +4724,7 @@ function toggleRankOrder(){
   renderRanking();
 }
 function syncRankFilters(){
+  var dr = $("rk-disc"); if (dr){ var doo = dr.querySelectorAll(".opt"); for (var d=0;d<doo.length;d++) doo[d].classList.toggle("sel", doo[d].getAttribute("data-disc")===rankFilter.disc); }
   var mr = $("rk-mode").querySelectorAll(".opt");
   for (var i=0;i<mr.length;i++) mr[i].classList.toggle("sel", mr[i].getAttribute("data-mode")===rankFilter.mode);
   var cr = $("rk-count").querySelectorAll(".opt");
