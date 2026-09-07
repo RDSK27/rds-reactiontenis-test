@@ -442,7 +442,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v192</div>
+      <div class="app-ver">v193</div>
       </div>
     </div>
   </section>
@@ -1083,8 +1083,10 @@ function launch1v1(ox, oy, tx, ty, from, to){
   var fn = (Math.abs(dy) > 1) ? ((gg.cy - oy) / dy) : 0.5;       // fraccion del vuelo en la que cruza la red
   if (fn < 0.02) fn = 0.02;
   if (fn > 0.98) fn = 0.98;
+  var isServe1 = ((g1.k || 0) === 0);
   g1.ball = { x:ox, y:oy, vx:dx/len*V, vy:dy/len*V, r:r, tAppear:performance.now(), trail:[], to:to, tx:tx, ty:ty,
               k:(g1.k || 0), tFlight:tf, fnet:fn, dist:len,
+              arc: ballArc(isServe1 ? null : normTactic(p1v1[from].tactic), isServe1),   // altura visual
               p:((g1.pNext != null) ? g1.pNext : 2) };            // 0 sorpresa | 1 patron | 2 tanteo
   if (gg.padel){
     var b1 = g1.ball;
@@ -2636,6 +2638,16 @@ function tacticDest(s){
   }
   return d;
 }
+/* Altura visual de la bola: cuanto "sube" la bola a lo largo del vuelo (solo
+   afecta al radio con el que se PINTA, no a la fisica ni a la deteccion del
+   toque). Alto en globo, casi plano en viboras y bolas rasas. */
+var BALL_ARC = { globo:0.60, chiquita:0.16, bandeja:0.10, vibora:0.05, fondo_pared:0.12,
+                 esquinas:0.15, insistencia:0.15, prof_corta:0.16, subir_red:0.15 };
+function ballArc(tactic, isServe){
+  if (isServe) return 0.08;
+  var a = BALL_ARC[tactic];
+  return (a != null) ? a : 0.13;
+}
 function makeTacticShot(){
   var g = computeCourtGeom();
   var s = computeSites(g);
@@ -2811,6 +2823,7 @@ function launchTennisBall(shot){
                cued: !!shot.cued,                     // llevaba preaviso (estela)
                fnet: (Math.abs(dy) > 0.001) ? Math.max(0, Math.min(0.99, (g.cy - o.y) / dy)) : 0.5,   // fraccion del vuelo al cruzar la RED
                k: (state.point ? state.point.hits : 0),    // numero de golpe dentro del punto
+               arc: ballArc(state.point ? state.point.tactic : null, !!shot.serve),   // altura visual (no toca la fisica)
                p: shot.p };                                 // 0 sorpresa | 1 patron | 2 tanteo/no aplica
   if (g.padel){
     // padel: tras el 1er bote la bola sigue viva y rebota en las paredes (cristal/malla).
@@ -2825,17 +2838,35 @@ function launchTennisBall(shot){
 }
 function drawTennisBall(tb){
   var x = tb.x, y = tb.y, r = tb.r;
+  // ALTURA VISUAL: la bola se pinta mas pequena al salir y al llegar, mas grande
+  // en el medio (parabola). Solo el radio DIBUJADO; tb.r (deteccion del toque) no cambia.
+  var lift = 0;
+  if (tb.arc && tb.tFlight){
+    var pf = (performance.now() - (tb.tAppear || 0)) / tb.tFlight;
+    if (pf < 0) pf = 0; if (pf > 1) pf = 1;
+    lift = tb.arc * Math.sin(Math.PI * pf);          // 0 en los extremos, maximo en el medio
+  }
+  var rd = r * (1 + lift);                            // radio visual
   var tr = tb.trail, n = tr.length;
   for (var s = 0; s < n - 1; s++){
     var f = (s + 1) / n;
     ctx.globalAlpha = 0.20 * f * f;
-    ctx.beginPath(); ctx.arc(tr[s].x, tr[s].y, r * (0.40 + 0.55 * f), 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(tr[s].x, tr[s].y, rd * (0.40 + 0.55 * f), 0, Math.PI * 2);
     ctx.fillStyle = "#d8e63a"; ctx.fill();
   }
   ctx.globalAlpha = 1;
+  // sombra: grande y separada cuando la bola esta alta, pegada y tenue cuando esta baja
+  if (lift > 0.001){
+    ctx.save();
+    ctx.globalAlpha = 0.20 - lift * 0.08;
+    ctx.beginPath();
+    ctx.ellipse(x, y + r * (0.35 + lift * 3.2), r * (0.80 + lift * 0.6), r * (0.42 + lift * 0.10), 0, 0, Math.PI * 2);
+    ctx.fillStyle = "#000000"; ctx.fill();
+    ctx.restore();
+  }
   ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.30)"; ctx.shadowBlur = r * 0.5; ctx.shadowOffsetY = r * 0.18;
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = "#cfe000"; ctx.fill();   // bola lisa
+  ctx.shadowColor = "rgba(0,0,0,0.30)"; ctx.shadowBlur = rd * 0.5; ctx.shadowOffsetY = rd * 0.18;
+  ctx.beginPath(); ctx.arc(x, y, rd, 0, Math.PI * 2); ctx.fillStyle = "#cfe000"; ctx.fill();   // bola lisa
   ctx.restore();
 }
 function gameScoreStr(){
