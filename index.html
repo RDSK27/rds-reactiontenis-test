@@ -425,7 +425,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v183</div>
+      <div class="app-ver">v184</div>
       </div>
     </div>
   </section>
@@ -2147,30 +2147,42 @@ function spawnBlack(){ state.balls.push(makeBall("black", state.blackCount)); st
 // ---------- Geometria de la pista (fuente unica) ----------
 function computeCourtGeom(){
   var W = CW, H = CH, top = COURT_TOP;
-  var padel = (state.disc === "padel");
-  var mX = Math.max(8, Math.round(W * (padel ? 0.07 : 0.05)));   // padel: un poco mas de marco (paredes)
+
+  if (state.disc === "padel"){
+    // Pista de padel real: 20 m x 10 m (relacion 2:1), algo comprimida a lo ancho para movil.
+    // Linea de saque a 3 m del fondo -> 7 m de la red (zona de saque grande, fondo estrecho).
+    var mYp = Math.max(10, Math.round((H - top) * 0.045));
+    var y0p = top + mYp, y1p = H - mYp;
+    var chP = y1p - y0p;
+    var maxWp = W - 2 * Math.max(12, Math.round(W * 0.055));
+    var cwP = Math.min(chP / 1.85, maxWp);            // 2:1 real, un pelin comprimida
+    var x0p = Math.round((W - cwP) / 2), x1p = Math.round((W + cwP) / 2);
+    var fSrvP = 3 / 20;                               // 3 m de fondo sobre 20 m de pista completa
+    var gp = {
+      padel: true,
+      x0:x0p, x1:x1p, y0:y0p, y1:y1p, cw:cwP, ch:chP,
+      cx:(x0p + x1p) / 2, cy:(y0p + y1p) / 2, base:Math.min(cwP, chP),
+      xSglL:x0p, xSglR:x1p,                           // sin pasillos: se juega a todo el ancho
+      ySrvT:y0p + chP * fSrvP, ySrvB:y1p - chP * fSrvP
+    };
+    gp.wallT = y0p; gp.wallB = y1p; gp.wallXL = x0p; gp.wallXR = x1p;
+    gp.glassSide = chP * 0.17;                        // cristal lateral ~3,4 m desde cada fondo; resto malla
+    return gp;
+  }
+
+  var mX = Math.max(8, Math.round(W * 0.05));
   var mYt = Math.max(8, Math.round((H - top) * 0.035));
-  var mYb = (IS_1V1 || padel) ? mYt : (mYt + Math.max(12, Math.round((H - top) * 0.06)));   // 1vs1 / padel: simetrica
-  if (padel) mYt = mYb = Math.max(10, Math.round((H - top) * 0.05));
+  var mYb = IS_1V1 ? mYt : (mYt + Math.max(12, Math.round((H - top) * 0.06)));   // 1vs1: mismo fondo arriba y abajo
   var x0 = mX, x1 = W - mX;
   var y0 = top + mYt, y1 = H - mYb;
   var cw = x1 - x0, ch = y1 - y0;
-  var fSingles = padel ? 0 : 4.5 / 36;                // padel: sin pasillos, se juega a todo el ancho
-  var fService = padel ? 0.30 : 18 / 78;             // padel: linea de saque a ~3m del fondo (mas cerca del fondo)
-  var g = {
-    padel: padel,
+  var fSingles = 4.5 / 36, fService = 18 / 78;
+  return {
     x0:x0, x1:x1, y0:y0, y1:y1, cw:cw, ch:ch,
     cx:(x0 + x1) / 2, cy:(y0 + y1) / 2, base:Math.min(cw, ch),
     xSglL:x0 + cw * fSingles, xSglR:x1 - cw * fSingles,
     ySrvT:y0 + ch * fService, ySrvB:y1 - ch * fService
   };
-  if (padel){
-    // paredes de cristal: fondo entero (arriba y abajo) y el 30% del lateral pegado a cada fondo;
-    // el tramo central de los laterales es malla metalica. Coords para la fisica de la fase 2.
-    g.wallT = y0; g.wallB = y1; g.wallXL = x0; g.wallXR = x1;
-    g.glassSide = ch * 0.30;                          // longitud de cristal lateral desde cada fondo
-  }
-  return g;
 }
 
 // 9 origenes (pista rival, arriba) y 10 direcciones (mi pista, abajo)
