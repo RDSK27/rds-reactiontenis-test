@@ -151,10 +151,15 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 #dd-pick{position:absolute;left:0;right:0;z-index:30;display:flex;align-items:center;justify-content:center;}
 #dd-pick.p1{top:50%;bottom:0;}
 #dd-pick.p2{top:0;bottom:50%;transform:rotate(180deg);}
-#dd-pick-box{width:86%;max-width:300px;max-height:88%;overflow:auto;background:#fff;border:3px solid var(--rds-red);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.45);}
+#dd-pick-box{width:90%;max-width:360px;max-height:88%;overflow:auto;background:#fff;border:3px solid var(--rds-red);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.45);}
 #dd-pick-ttl{font-size:11px;letter-spacing:1px;color:#666;text-transform:uppercase;font-weight:900;margin:0 2px 6px;text-align:left;}
 .dd-opt{padding:11px 10px;font-size:13px;font-weight:800;color:#111;cursor:pointer;border:2px solid #111;border-radius:8px;text-align:left;margin-bottom:6px;background:#fff;}
 .dd-opt.sel{background:var(--rds-red);color:#fff;border-color:var(--rds-red);}
+.dd-cols{display:flex;gap:7px;align-items:flex-start;}
+.dd-col{flex:1;min-width:0;}
+.dd-col-lbl{font-size:9px;letter-spacing:1px;color:#666;text-transform:uppercase;font-weight:900;margin:0 2px 4px;}
+.dd-cols .dd-opt{padding:7px 5px;font-size:11px;text-align:center;margin-bottom:5px;min-height:32px;display:flex;align-items:center;justify-content:center;}
+.dd-done{width:100%;padding:9px;border:none;border-radius:8px;background:var(--rds-red);color:#fff;font-weight:900;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin:2px 0 5px;}
 #dd-pick-cancel{width:100%;padding:9px;border:none;border-radius:8px;background:#555;color:#fff;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:2px;}
 .p1v1-lbl{font-size:11px;letter-spacing:1px;color:#666;text-transform:uppercase;font-weight:900;text-align:left;}
 #setup-1v1 select:disabled{background:#eeeeee !important;border-color:#cccccc !important;color:#bbbbbb !important;opacity:1;}
@@ -216,11 +221,12 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 #btn-seguir.locked{opacity:0.45;filter:grayscale(0.55);}
 #btn-read{pointer-events:auto;cursor:pointer;border:none;color:#fff;font-weight:900;font-size:28px;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #ff6a55 0%, #e01e0e 45%, #8a0f06 100%);box-shadow:inset 0 2px 4px rgba(255,255,255,0.3), 0 4px 10px rgba(0,0,0,0.4);animation:readPulse 0.9s ease-in-out infinite;}
 @keyframes readPulse{0%{transform:scale(1);box-shadow:inset 0 2px 4px rgba(255,255,255,0.3),0 0 0 0 rgba(224,30,14,0.7),0 4px 10px rgba(0,0,0,0.4);}70%{transform:scale(1.14);box-shadow:inset 0 2px 4px rgba(255,255,255,0.3),0 0 0 14px rgba(224,30,14,0),0 5px 14px rgba(0,0,0,0.45);}100%{transform:scale(1);box-shadow:inset 0 2px 4px rgba(255,255,255,0.3),0 0 0 0 rgba(224,30,14,0),0 4px 10px rgba(0,0,0,0.4);}}
-#read-panel{pointer-events:auto;background:rgba(255,255,255,0.96);border-radius:8px;padding:10px 12px;width:250px;box-sizing:border-box;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
-#read-panel .read-q{font-size:12px;font-weight:800;color:#333;margin:9px 0 5px;text-align:center;}
-#read-panel .read-q:first-child{margin-top:0;}
-#read-panel .read-grp{display:flex;flex-wrap:wrap;gap:5px;}
-#read-panel .read-opt{flex:1 1 46%;margin:0;padding:7px 6px;font-size:11px;font-weight:700;border:2px solid #c05c34;border-radius:6px;background:#fff;color:#7a3418;cursor:pointer;}
+#read-panel{pointer-events:auto;background:rgba(255,255,255,0.96);border-radius:8px;padding:10px 12px;width:288px;box-sizing:border-box;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
+#read-panel .read-cols{display:flex;gap:10px;align-items:flex-start;}
+#read-panel .read-col{flex:1;min-width:0;}
+#read-panel .read-q{font-size:12px;font-weight:800;color:#333;margin:0 0 5px;text-align:center;}
+#read-panel .read-grp{display:flex;flex-direction:column;gap:5px;}
+#read-panel .read-opt{margin:0;padding:7px 6px;font-size:11px;font-weight:700;border:2px solid #c05c34;border-radius:6px;background:#fff;color:#7a3418;cursor:pointer;min-height:34px;}
 #read-panel .read-opt:active{background:#f2e0d6;}
 #read-panel .read-opt.sel{background:#c05c34;color:#fff;}
 #read-panel .read-confirm{display:block;width:100%;margin:11px 0 0;padding:9px 10px;font-size:12px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;border:none;border-radius:6px;background:#1e9e46;color:#fff;cursor:pointer;}
@@ -413,7 +419,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v180</div>
+      <div class="app-ver">v181</div>
       </div>
     </div>
   </section>
@@ -1370,19 +1376,47 @@ function ready1v1(n){
     countdown1v1(function(){ if (g1.on) serve1v1(); });
   }
 }
+var ddPending = null;
+function ddColHtml(label, opts, cur, grp){
+  var h = '<div class="dd-col"><div class="dd-col-lbl">' + label + '</div>';
+  for (var i=0;i<opts.length;i++){
+    h += '<div class="dd-opt' + (opts[i][0] === cur ? ' sel' : '') + '" data-grp="' + grp + '" data-v="' + opts[i][0] + '">' + opts[i][1] + '</div>';
+  }
+  return h + '</div>';
+}
 function openTac1v1(n){
   // tocar Tactica te "des-confirma": nadie puede quedar listo por accidente mientras elige
   g1.ready[n] = false;
   var goN = $("pt1v1-go-" + n);
   if (goN){ goN.textContent = "Seguir"; goN.classList.remove("ok"); }
-  // dos elecciones encadenadas: patron (4) y luego estilo (3)
-  ddOpen(n, "T\u00e1ctica", TACTIC_OPTS, p1v1[n].tactic, function(t){
-    p1v1[n].tactic = t;
-    ddOpen(n, "Estilo", STYLE_OPTS, p1v1[n].style, function(s){
-      p1v1[n].style = s;
-      markPicked1v1(n);
-    });
-  });
+  var pk = $("dd-pick"), box = $("dd-pick-opts"), ttl = $("dd-pick-ttl");
+  if (!pk || !box) return;
+  pk.className = (n === 2) ? "p2" : "p1";                 // centrado en la mitad del jugador
+  if (ttl) ttl.textContent = "T\u00e1ctica y estilo";
+  ddPending = { n: n, tactic: normTactic(p1v1[n].tactic), style: normStyle(p1v1[n].style) };
+  box.innerHTML = '<div class="dd-cols">'
+    + ddColHtml("Patr\u00f3n", TACTIC_OPTS, ddPending.tactic, "tactic")
+    + ddColHtml("Estilo", STYLE_OPTS, ddPending.style, "style")
+    + '</div><button class="dd-done" onclick="ddTacDone()">Listo</button>';
+  var os = box.querySelectorAll(".dd-opt");
+  for (var k=0;k<os.length;k++){
+    os[k].onclick = (function(el){ return function(){
+      var grp = el.getAttribute("data-grp");
+      ddPending[grp] = el.getAttribute("data-v");
+      var sibs = box.querySelectorAll('.dd-opt[data-grp="' + grp + '"]');
+      for (var j=0;j<sibs.length;j++) sibs[j].classList.toggle("sel", sibs[j] === el);
+    }; })(os[k]);
+  }
+  pk.style.display = "flex";
+}
+function ddTacDone(){
+  if (!ddPending) { ddClose(); return; }
+  var n = ddPending.n;
+  p1v1[n].tactic = ddPending.tactic;
+  p1v1[n].style  = ddPending.style;
+  ddPending = null;
+  ddClose();
+  markPicked1v1(n);
 }
 function bindTac1v1(n){ /* los desplegables propios se cablean en ddRender */ }
 function drawHawk1v1(){
@@ -3547,9 +3581,11 @@ function readGroupHtml(dim, q, opts){
 }
 function renderReadForm(){
   var panel = $("read-panel"); if (!panel) return;
-  panel.innerHTML = readGroupHtml("tactic", "&#191;Qu&#233; t&#225;ctica?", TACTIC_OPTS)
-                  + readGroupHtml("style", "&#191;Qu&#233; estilo?", READ_STYLE_OPTS)
-                  + '<button class="read-confirm" id="read-confirm" onclick="readConfirm()" disabled>Confirmar</button>';
+  panel.innerHTML = '<div class="read-cols">'
+    + '<div class="read-col">' + readGroupHtml("tactic", "&#191;Qu&#233; t&#225;ctica?", TACTIC_OPTS) + '</div>'
+    + '<div class="read-col">' + readGroupHtml("style", "&#191;Qu&#233; estilo?", READ_STYLE_OPTS) + '</div>'
+    + '</div>'
+    + '<button class="read-confirm" id="read-confirm" onclick="readConfirm()" disabled>Confirmar</button>';
   panel.style.display = "";
 }
 function readPick(dim, value, el){
