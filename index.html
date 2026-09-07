@@ -268,6 +268,8 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 .pause-btn{width:100%;padding:11px 16px;border:none;border-radius:8px;background:var(--rds-red);color:#fff;font-weight:800;font-size:14px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
 .pause-btn.pause-alt{background:#555;}
 #screen-home #mode2-row{margin-top:10px;}
+#screen-home #disc-row{margin-bottom:12px;}
+#screen-home #disc-row .opt{letter-spacing:2px;}
 .inf-ico{font-size:2.1em;line-height:0.8;vertical-align:-0.12em;font-weight:700;}
 .mm-count{display:flex;gap:8px;width:100%;}
 .mm-cbtn{flex:1;padding:11px 8px;border:2px solid #a9bd00;border-radius:8px;background:#f3f7c8;color:#5c6b00;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
@@ -395,10 +397,14 @@ table.rk tr.top3 td{background:#f7efe7;}
   <!-- HOME -->
   <section id="screen-home" class="screen active">
     <div class="pad">
-      <h1 class="home-title">Reaction<br>Tenis</h1>
+      <h1 class="home-title">Reaction<br><span id="home-disc-word">Tenis</span></h1>
       <img class="home-logo" src="assets/logo.png" alt="RDS Reaction Tenis">
 
       <div id="mode-section">
+        <div class="opt-row" id="disc-row">
+          <div class="opt sel" data-disc="tenis">TENIS</div>
+          <div class="opt" data-disc="padel">P&#193;DEL</div>
+        </div>
         <div class="opt-row three" id="mode-row">
         <div class="opt sel" data-mode="normal">JUEGO</div>
         <div class="opt" data-mode="extremo">SET</div>
@@ -419,7 +425,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v182</div>
+      <div class="app-ver">v183</div>
       </div>
     </div>
   </section>
@@ -727,6 +733,7 @@ var MODES = {
 var state = {
   mode: "normal",
   count: 4,
+  disc: "tenis",          // disciplina de juego: "tenis" | "padel" (independiente del deporte del atleta)
   deuce: "ventaja",
   penaliza: true,
   trials: [],
@@ -2140,19 +2147,30 @@ function spawnBlack(){ state.balls.push(makeBall("black", state.blackCount)); st
 // ---------- Geometria de la pista (fuente unica) ----------
 function computeCourtGeom(){
   var W = CW, H = CH, top = COURT_TOP;
-  var mX = Math.max(8, Math.round(W * 0.05));
+  var padel = (state.disc === "padel");
+  var mX = Math.max(8, Math.round(W * (padel ? 0.07 : 0.05)));   // padel: un poco mas de marco (paredes)
   var mYt = Math.max(8, Math.round((H - top) * 0.035));
-  var mYb = IS_1V1 ? mYt : (mYt + Math.max(12, Math.round((H - top) * 0.06)));   // 1vs1: mismo fondo arriba y abajo
+  var mYb = (IS_1V1 || padel) ? mYt : (mYt + Math.max(12, Math.round((H - top) * 0.06)));   // 1vs1 / padel: simetrica
+  if (padel) mYt = mYb = Math.max(10, Math.round((H - top) * 0.05));
   var x0 = mX, x1 = W - mX;
   var y0 = top + mYt, y1 = H - mYb;
   var cw = x1 - x0, ch = y1 - y0;
-  var fSingles = 4.5 / 36, fService = 18 / 78;
-  return {
+  var fSingles = padel ? 0 : 4.5 / 36;                // padel: sin pasillos, se juega a todo el ancho
+  var fService = padel ? 0.30 : 18 / 78;             // padel: linea de saque a ~3m del fondo (mas cerca del fondo)
+  var g = {
+    padel: padel,
     x0:x0, x1:x1, y0:y0, y1:y1, cw:cw, ch:ch,
     cx:(x0 + x1) / 2, cy:(y0 + y1) / 2, base:Math.min(cw, ch),
     xSglL:x0 + cw * fSingles, xSglR:x1 - cw * fSingles,
     ySrvT:y0 + ch * fService, ySrvB:y1 - ch * fService
   };
+  if (padel){
+    // paredes de cristal: fondo entero (arriba y abajo) y el 30% del lateral pegado a cada fondo;
+    // el tramo central de los laterales es malla metalica. Coords para la fisica de la fase 2.
+    g.wallT = y0; g.wallB = y1; g.wallXL = x0; g.wallXR = x1;
+    g.glassSide = ch * 0.30;                          // longitud de cristal lateral desde cada fondo
+  }
+  return g;
 }
 
 // 9 origenes (pista rival, arriba) y 10 direcciones (mi pista, abajo)
@@ -2214,10 +2232,80 @@ function bounceCheck(b, prevX, prevY){
     addBounce(b.tx, b.ty, b.r);   // donde cae de verdad, dentro o fuera de las lineas
   }
 }
+function drawCourtPadel(g){
+  var W = CW, H = CH;
+  var x0=g.x0, x1=g.x1, y0=g.y0, y1=g.y1, cw=g.cw, ch=g.ch, cx=g.cx, cy=g.cy, base=g.base;
+  ctx.fillStyle = "#15303f";                 // fuera de la pista (azul oscuro)
+  ctx.fillRect(0, 0, W, H);
+  if (cw <= 0 || ch <= 0) return;
+  var gr = ctx.createLinearGradient(0, y0, 0, y1);   // superficie azul
+  gr.addColorStop(0, "#3a7fb5"); gr.addColorStop(0.5, "#2f6fa2"); gr.addColorStop(1, "#3a7fb5");
+  ctx.fillStyle = gr;
+  ctx.fillRect(x0, y0, cw, ch);
+
+  var wOut = Math.max(3, Math.round(base * 0.012));
+  var wIn  = Math.max(2, Math.round(base * 0.007));
+
+  function glassBand(gx, gy, gw, gh){
+    ctx.fillStyle = "rgba(190,225,240,0.16)";
+    ctx.fillRect(gx, gy, gw, gh);
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(gx + 0.5, gy + 0.5, gw - 1, gh - 1);
+  }
+  // cristal de fondo (arriba y abajo, todo el ancho)
+  var wallH = Math.max(8, Math.round(ch * 0.05));
+  glassBand(x0, y0, cw, wallH);
+  glassBand(x0, y1 - wallH, cw, wallH);
+  // cristal lateral (tercio del fondo a cada lado) + malla en el tramo central
+  var wallW = Math.max(6, Math.round(cw * 0.035));
+  [x0, x1 - wallW].forEach(function(gx){
+    glassBand(gx, y0, wallW, g.glassSide);
+    glassBand(gx, y1 - g.glassSide, wallW, g.glassSide);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(gx, y0 + g.glassSide, wallW, ch - 2 * g.glassSide); ctx.clip();
+    ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 1;
+    for (var d = -ch; d < ch; d += 6){ ctx.beginPath(); ctx.moveTo(gx + d, y0); ctx.lineTo(gx + d + ch, y1); ctx.stroke(); }
+    ctx.restore();
+  });
+
+  // lineas blancas
+  ctx.strokeStyle = "#ffffff"; ctx.lineCap = "butt";
+  function hLine(y, xa, xb, w){ ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(xa, y); ctx.lineTo(xb, y); ctx.stroke(); }
+  function vLine(x, ya, yb, w){ ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x, ya); ctx.lineTo(x, yb); ctx.stroke(); }
+  ctx.lineWidth = wOut; ctx.strokeRect(x0, y0, cw, ch);
+  hLine(g.ySrvT, x0, x1, wIn);
+  hLine(g.ySrvB, x0, x1, wIn);
+  vLine(cx, g.ySrvT, g.ySrvB, wIn);           // linea central de saque (de saque a saque)
+
+  // red (mas baja que en tenis)
+  var bandH = Math.max(5, Math.round(base * 0.035));
+  var nt = cy - bandH / 2, nb = cy + bandH / 2;
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.10)"; ctx.fillRect(x0, nt, cw, bandH);
+  ctx.strokeStyle = "rgba(15,15,15,0.6)"; ctx.lineWidth = 1;
+  var nstep = Math.max(4, Math.round(cw / 55));
+  ctx.beginPath();
+  for (var xx = x0; xx <= x1; xx += nstep){ ctx.moveTo(xx, nt + 1); ctx.lineTo(xx, nb - 1); }
+  ctx.stroke();
+  ctx.restore();
+  ctx.strokeStyle = "#111111"; hLine(nb, x0, x1, wIn);
+  ctx.strokeStyle = "#ffffff"; hLine(nt, x0, x1, Math.max(2, Math.round(base * 0.011)));
+  var pr = Math.max(3, Math.round(base * 0.018));
+  ctx.fillStyle = "#111111";
+  ctx.beginPath(); ctx.arc(x0, cy, pr, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x1, cy, pr, 0, Math.PI * 2); ctx.fill();
+
+  // marco metalico exterior
+  var fw = Math.max(2, Math.round(base * 0.02));
+  ctx.strokeStyle = "#0d2632"; ctx.lineWidth = fw;
+  ctx.strokeRect(x0 - fw / 2, y0 - fw / 2, cw + fw, ch + fw);
+}
 function drawCourt(){
   if (!ctx) return;
   var W = CW, H = CH;
   var g = computeCourtGeom();
+  if (g.padel){ drawCourtPadel(g); return; }
   var x0 = g.x0, x1 = g.x1, y0 = g.y0, y1 = g.y1, cw = g.cw, ch = g.ch;
   var cx = g.cx, cy = g.cy, base = g.base;
   var xSglL = g.xSglL, xSglR = g.xSglR, ySrvT = g.ySrvT, ySrvB = g.ySrvB;
@@ -4344,6 +4432,28 @@ function init(){
       mo[mi].addEventListener("click", (function(v){ return function(){ selectMode(v); }; })(mo[mi].getAttribute("data-mode")));
     }
   }
+
+  // ---- selector Tenis / Padel ----
+  function applyDisc(){
+    var dr = $("disc-row");
+    if (dr){ var os = dr.querySelectorAll(".opt"); for (var i=0;i<os.length;i++) os[i].classList.toggle("sel", os[i].getAttribute("data-disc") === state.disc); }
+    var w = $("home-disc-word"); if (w) w.textContent = (state.disc === "padel") ? "Pádel" : "Tenis";
+    if ($("screen-game") && $("screen-game").classList.contains("active") && typeof drawCourt === "function") drawCourt();
+  }
+  function selectDisc(v){
+    state.disc = (v === "padel") ? "padel" : "tenis";
+    try { localStorage.setItem("rtenis_disc", state.disc); } catch(e){}
+    applyDisc();
+  }
+  try { if (localStorage.getItem("rtenis_disc") === "padel") state.disc = "padel"; } catch(e){}
+  var dr = $("disc-row");
+  if (dr){
+    var dos = dr.querySelectorAll(".opt");
+    for (var di=0; di<dos.length; di++){
+      dos[di].addEventListener("click", (function(v){ return function(){ selectDisc(v); }; })(dos[di].getAttribute("data-disc")));
+    }
+  }
+  applyDisc();
 
   var cBtns = document.querySelectorAll("#mm-count .mm-cbtn");
   for (var cb=0; cb<cBtns.length; cb++){
