@@ -26,6 +26,17 @@
   --radius:6px;
   --ball:url(assets/ball.webp);
 }
+/* PADEL: el naranja corporativo pasa al azul de la pista */
+html.disc-padel{
+  --rds-red:#2f6fa2;
+  --rds-red-dark:#255d8f;
+  --rds-blue:#2f6fa2;
+}
+html.disc-padel header{border-bottom-color:#2f6fa2;}
+html.disc-padel header img{filter:hue-rotate(183deg) saturate(1.1);}
+html.disc-padel #btn-start{background:radial-gradient(circle at 35% 30%, #5aa0d0 0%, #2f6fa2 45%, #1e4e77 100%);}
+html.disc-padel #read-panel .read-opt{border-color:#2f6fa2;color:#255d8f;}
+html.disc-padel #read-panel .read-opt.sel{background:#2f6fa2;color:#fff;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;overscroll-behavior:none;touch-action:manipulation;background:#000000;}
 body{
@@ -425,7 +436,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v184</div>
+      <div class="app-ver">v185</div>
       </div>
     </div>
   </section>
@@ -2666,7 +2677,8 @@ function spawnTennisBall(fromX, fromY, serveReturn){
   }
   shot.cued = (fromX != null && fromY != null && !serveReturn);
   // regla "bola fuera": algunas bolas del rally se van fuera; si las dejas, ganas el punto.
-  if (shot.cued && !shot.serve && OUT_BALL_RATE > 0 && Math.random() < OUT_BALL_RATE){
+  // En padel no aplica: las paredes mantienen la bola dentro.
+  if (shot.cued && !shot.serve && !shot.g.padel && OUT_BALL_RATE > 0 && Math.random() < OUT_BALL_RATE){
     var gO = shot.g, dO = shot.d;
     if (Math.random() < 0.6){                         // 60% se va por un lateral (pasillo/fuera)
       var side = (dO.x < gO.cx) ? -1 : 1;
@@ -2721,6 +2733,15 @@ function launchTennisBall(shot){
                fnet: (Math.abs(dy) > 0.001) ? Math.max(0, Math.min(0.99, (g.cy - o.y) / dy)) : 0.5,   // fraccion del vuelo al cruzar la RED
                k: (state.point ? state.point.hits : 0),    // numero de golpe dentro del punto
                p: shot.p };                                 // 0 sorpresa | 1 patron | 2 tanteo/no aplica
+  if (g.padel){
+    // padel: tras el 1er bote la bola sigue viva y rebota en las paredes (cristal/malla).
+    // El punto se pierde al 2o bote en el suelo si no la has interceptado.
+    var tb = state.tb;
+    tb.padel = true;
+    tb.floorBounces = 0;
+    tb.postBudget = g.ch * 1.05;                     // recorrido disponible tras el 1er bote (lo comen los rebotes)
+    tb.wallL = g.wallXL; tb.wallR = g.wallXR; tb.wallT = g.wallT; tb.wallB = g.wallB;
+  }
 }
 function drawTennisBall(tb){
   var x = tb.x, y = tb.y, r = tb.r;
@@ -3280,6 +3301,41 @@ function losePoint(reason){
   }
 }
 
+// PADEL: la bola bota una vez en mi campo, sigue viva rebotando en cristal/malla,
+// y el punto se pierde al 2o bote en el suelo si no la he interceptado.
+function stepPadelBall(tb, dt){
+  var _px = tb.x, _py = tb.y;
+  tb.x += tb.vx * dt; tb.y += tb.vy * dt;
+  var moved = Math.hypot(tb.x - _px, tb.y - _py);
+
+  if (tb.floorBounces === 0){
+    bounceCheck(tb, _px, _py);                 // marca el punto naranja al cruzar (tx,ty)
+    if (tb._bounced){                          // 1er bote en el suelo
+      tb.floorBounces = 1;
+      tb.vx *= 0.92; tb.vy *= 0.92;
+    }
+  } else {
+    tb.postBudget -= moved;                    // el recorrido tras el bote se agota
+  }
+
+  // paredes: reflejan la componente y frenan un poco; la bola sigue viva
+  var hitWall = false;
+  if (tb.x < tb.wallL + tb.r){ tb.x = tb.wallL + tb.r; tb.vx = Math.abs(tb.vx); hitWall = true; }
+  else if (tb.x > tb.wallR - tb.r){ tb.x = tb.wallR - tb.r; tb.vx = -Math.abs(tb.vx); hitWall = true; }
+  if (tb.y < tb.wallT + tb.r){ tb.y = tb.wallT + tb.r; tb.vy = Math.abs(tb.vy); hitWall = true; }
+  else if (tb.y > tb.wallB - tb.r){ tb.y = tb.wallB - tb.r; tb.vy = -Math.abs(tb.vy); hitWall = true; }
+  if (hitWall){ tb.vx *= 0.86; tb.vy *= 0.86; tb.wallHits = (tb.wallHits || 0) + 1; }
+
+  tb.trail.push({ x: tb.x, y: tb.y }); if (tb.trail.length > TRAIL_LEN) tb.trail.shift();
+  drawTennisBall(tb);
+
+  if (tb.floorBounces >= 1 && tb.postBudget <= 0){   // 2o bote: no llegaste
+    addBounce(tb.x, tb.y, tb.r);
+    state.tb = null;
+    losePoint("dosbotes");
+  }
+}
+
 function loop(ts){
   var dt = (ts - state.lastTs) / 1000;
   if (dt > 0.05) dt = 0.05;
@@ -3321,17 +3377,21 @@ function loop(ts){
 
   if (state.active && state.tbMode && state.tb){
     var tb = state.tb;
-    var _px = tb.x, _py = tb.y;
-    tb.x += tb.vx * dt; tb.y += tb.vy * dt;
-    bounceCheck(tb, _px, _py);
-    tb.trail.push({ x: tb.x, y: tb.y }); if (tb.trail.length > TRAIL_LEN) tb.trail.shift();
-    drawTennisBall(tb);
-    var mg = tb.r + 6;
-    if (tb.x < -mg || tb.x > CW + mg || tb.y < -mg || tb.y > CH + mg){
-      var wasOut = ballWentOut(tb);   // fuera = su bote cae fuera de las lineas, lleve flag o no
-      state.tb = null;
-      if (wasOut) winPointOut();     // la dejaste y botaba fuera -> punto tuyo, bien leido
-      else losePoint("fuera");       // botaba dentro y la dejaste -> punto del rival
+    if (tb.padel){
+      stepPadelBall(tb, dt);
+    } else {
+      var _px = tb.x, _py = tb.y;
+      tb.x += tb.vx * dt; tb.y += tb.vy * dt;
+      bounceCheck(tb, _px, _py);
+      tb.trail.push({ x: tb.x, y: tb.y }); if (tb.trail.length > TRAIL_LEN) tb.trail.shift();
+      drawTennisBall(tb);
+      var mg = tb.r + 6;
+      if (tb.x < -mg || tb.x > CW + mg || tb.y < -mg || tb.y > CH + mg){
+        var wasOut = ballWentOut(tb);   // fuera = su bote cae fuera de las lineas, lleve flag o no
+        state.tb = null;
+        if (wasOut) winPointOut();     // la dejaste y botaba fuera -> punto tuyo, bien leido
+        else losePoint("fuera");       // botaba dentro y la dejaste -> punto del rival
+      }
     }
   }
 
@@ -4447,6 +4507,7 @@ function init(){
 
   // ---- selector Tenis / Padel ----
   function applyDisc(){
+    document.documentElement.classList.toggle("disc-padel", state.disc === "padel");
     var dr = $("disc-row");
     if (dr){ var os = dr.querySelectorAll(".opt"); for (var i=0;i<os.length;i++) os[i].classList.toggle("sel", os[i].getAttribute("data-disc") === state.disc); }
     var w = $("home-disc-word"); if (w) w.textContent = (state.disc === "padel") ? "Pádel" : "Tenis";
