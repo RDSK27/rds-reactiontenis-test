@@ -171,7 +171,7 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 /* GAME */
 #screen-game{position:relative;background-color:#FFFFFF;background-image:radial-gradient(circle, rgba(17,17,17,0.20) 1.1px, transparent 1.4px);background-size:20px 20px;}
 .hud{
-  position:absolute;top:0;left:0;right:0;z-index:5;
+  position:absolute;top:0;left:0;right:0;z-index:5;min-height:33px;
   display:flex;align-items:center;gap:8px;padding:8px 12px;
   background:rgba(255,255,255,.94);border-bottom:3px solid #111111;
 }
@@ -408,7 +408,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v175</div>
+      <div class="app-ver">v176</div>
       </div>
     </div>
   </section>
@@ -2552,7 +2552,7 @@ function drawTennisBall(tb){
   ctx.restore();
 }
 function gameScoreStr(){
-  if (state.inTiebreak){ var tp = state.tbp || { me: 0, rival: 0 }; return tp.me + " - " + tp.rival; }
+  if (state.inTiebreak){ var tp = state.tbp || { me: 0, rival: 0 }; return tp.me + "-" + tp.rival; }
   var gp = state.gp || { me: 0, rival: 0 };
   var a = gp.me, b = gp.rival;
   if (a >= 3 && b >= 3){
@@ -2562,32 +2562,36 @@ function gameScoreStr(){
   var map = ["0", "15", "30", "40"];
   var sa = a <= 3 ? map[a] : "40";
   var sb = b <= 3 ? map[b] : "40";
-  return sa + " - " + sb;
+  return sa + "-" + sb;
 }
-function setsGamesStr(){
-  if (state.mode === "normal") return "";
-  var g = "J " + state.games.me + "-" + state.games.rival;
-  if (state.mode === "limite") g = "S " + state.sets.me + "-" + state.sets.rival + "  " + g;
-  return g;
-}
-function scoreLine(){
-  return "J " + state.games.me + " - " + state.games.rival + " / S " + state.sets.me + " - " + state.sets.rival;
-}
-function leftStr(){ return scoreLine(); }
-function runningAvgRT(){
-  var rts = state.tbRts || [];
-  if (!rts.length) return "--";
-  var sum = 0; for (var i = 0; i < rts.length; i++) sum += rts[i];
-  return Math.round(sum / rts.length) + " ms";
+/* Marcador completo con nomenclatura de tenis real: sets ya jugados,
+   luego juegos del set en curso, luego puntos del juego en curso -
+   siempre en ese orden ("6-4 / 1-0 / 30-15"), igual que se anuncia un
+   marcador en voz. En Juego (un solo juego, sin sets/juegos que
+   contar) queda solo el ultimo tramo (los puntos). */
+function tennisScoreStr(){
+  var parts = [];
+  if (state.mode !== "normal" && state.setScores && state.setScores.length){
+    for (var i = 0; i < state.setScores.length; i++){
+      parts.push(state.setScores[i][0] + "-" + state.setScores[i][1]);
+    }
+  }
+  if (state.mode !== "normal"){
+    parts.push(state.games.me + "-" + state.games.rival);
+  }
+  parts.push(gameScoreStr());
+  return parts.join(" / ");
 }
 function tbUpdateHud(){
-  var idx = $("hud-idx"), trv = $("hud-trial"), cr = $("hud-crono"), crv = $("hud-crono-val");
-  if (idx) idx.textContent = leftStr();          // izquierda: sets / juegos
-  if (cr) cr.style.display = "";                   // centro: marcador del juego
-  if (crv) crv.textContent = gameScoreStr();
+  /* Barra superior: solo el marcador de tenis, centrado. La media de
+     reaccion ya no se muestra aqui (se ve al final, en resultados). */
+  var si = $("stat-idx"), st = $("stat-trial"), cr = $("hud-crono"), crv = $("hud-crono-val");
+  if (si) si.style.display = "none";
+  if (st) st.style.display = "none";
+  if (cr) cr.style.display = "";
+  if (crv) crv.textContent = tennisScoreStr();
   var sl = $("hud-serve-lbl");                      // quien saca (solo Set/Partido: en Juego no hay alternancia)
   if (sl) sl.textContent = (state.mode === "normal") ? "" : ((state.server === "me") ? "Saco yo" : "Saca rival");
-  if (trv) trv.textContent = runningAvgRT();       // derecha: media de reaccion acumulada
   var fill = $("game-progress-fill");
   if (fill){ var pt = state.point; fill.style.width = (pt && pt.n) ? Math.round(100 * pt.hits / pt.n) + "%" : "0%"; }
 }
@@ -2722,10 +2726,10 @@ function afterPoint(pointWon){
   } else if (state.readOut){
     mid = "Bien leido \u00b7 " + gameScoreStr(); midCol = "#1e9e46";
   } else {
-    mid = gameScoreStr(); midCol = "#333333";
+    mid = ""; midCol = "#333333";   // el marcador ya sale completo abajo, en tennisScoreStr()
   }
   state.readOut = false;
-  showPointResult(word, mid, scoreLine(), green, midCol);
+  showPointResult(word, mid, tennisScoreStr(), green, midCol);
   var closed = (ev === "game" || ev === "set" || ev === "match" || state.matchOver);
   if (closed) askEmo(mine, afterPointFlow);   // la emocion ANTES del "?": el test no debe contaminarla
   else afterPointFlow();
