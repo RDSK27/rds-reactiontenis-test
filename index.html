@@ -442,7 +442,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v190</div>
+      <div class="app-ver">v191</div>
       </div>
     </div>
   </section>
@@ -900,7 +900,7 @@ function prepare1v1(){
   stop1v1();
   g1.on = false; g1.over = true; g1.msg = ""; g1.rally = 0; g1.last = 0;
   g1.pts = {1:0, 2:0}; g1.games = {1:0, 2:0}; g1.sets = {1:0, 2:0};
-  g1.tb = false; g1.tbp = {1:0, 2:0}; g1.setScores = [];
+  g1.tb = false; g1.superTB = false; g1.tbp = {1:0, 2:0}; g1.setScores = [];
   g1.matchOver = false; g1.winner = 0; g1.ev = "point";
   g1.server = 1; g1.ball = null; g1.hawk = null;
   g1.ready = {1:false, 2:false};
@@ -1177,7 +1177,7 @@ function tennisScore1v1(n){
       parts.push(mine + "-" + his);
     }
   }
-  if (d1v1.mode !== "normal"){
+  if (d1v1.mode !== "normal" && !g1.superTB){          // en el super tie-break no hay juegos que contar
     parts.push(g1.games[n] + "-" + g1.games[o]);
   }
   parts.push(gamePts1v1(n));
@@ -1207,12 +1207,14 @@ function award1v1(w){
   if (g1.tb){
     g1.tbp[w]++;
     var tot = g1.tbp[1] + g1.tbp[2];
-    if (g1.tbp[w] >= 7 && (g1.tbp[w] - g1.tbp[o]) >= 2){ winSet1v1(w); return; }
+    var tgt = g1.superTB ? 10 : 7;               // super tie-break (3er set, padel) a 10; el normal a 7
+    if (g1.tbp[w] >= tgt && (g1.tbp[w] - g1.tbp[o]) >= 2){ winSet1v1(w); return; }
     if (tot % 2 === 1) g1.server = (g1.server === 1) ? 2 : 1;   // cambia tras el 1er punto y luego cada 2
     return;
   }
   g1.pts[w]++;
-  if (g1.pts[w] >= 4 && (g1.pts[w] - g1.pts[o]) >= 2) winGame1v1(w);
+  var golden = (state.disc === "padel");        // punto de oro en padel
+  if (g1.pts[w] >= 4 && (golden || (g1.pts[w] - g1.pts[o]) >= 2)) winGame1v1(w);
 }
 function winGame1v1(w){
   var o = (w === 1) ? 2 : 1;
@@ -1227,14 +1229,19 @@ function winGame1v1(w){
 }
 function winSet1v1(w){
   var o = (w === 1) ? 2 : 1;
-  g1.setScores.push([g1.games[w], g1.games[o], w]);
+  if (g1.superTB) g1.setScores.push([g1.tbp[w], g1.tbp[o], w]);          // super tie-break: se anota con sus puntos
+  else g1.setScores.push([g1.games[w], g1.games[o], w]);
   g1.sets[w]++;
   g1.ev = "set";
   if (g1.tb) g1.server = (g1.server === 1) ? 2 : 1;   // fin del tie-break: cambia el saque
-  g1.tb = false; g1.tbp = {1:0, 2:0};
+  g1.tb = false; g1.superTB = false; g1.tbp = {1:0, 2:0};
   g1.games = {1:0, 2:0}; g1.pts = {1:0, 2:0};
   if (d1v1.mode === "extremo"){ g1.matchOver = true; g1.winner = w; return; }  // SET: acaba al ganar un set
-  if (g1.sets[w] >= 2){ g1.matchOver = true; g1.winner = w; }                  // PARTIDO: al mejor de 3
+  if (g1.sets[w] >= 2){ g1.matchOver = true; g1.winner = w; return; }          // PARTIDO: al mejor de 3
+  // PADEL Partido: con 1-1 en sets, el 3er set es un super tie-break a 10
+  if (state.disc === "padel" && d1v1.mode === "limite" && g1.sets[1] === 1 && g1.sets[2] === 1){
+    g1.superTB = true; g1.tb = true; g1.tbp = {1:0, 2:0};
+  }
 }
 function askEmo1v1(won1, won2, cb){
   var ov = $("emo1v1-ov");
@@ -1355,6 +1362,11 @@ function showPt1v1(winner, why){
     var ttl = (winner === n) ? "PUNTO" : "FALLO" + (txtWhy ? " \u00b7 " + txtWhy : "");
     if (g1.ev === "game") ttl = (winner === n) ? "\u00a1JUEGO!" : "JUEGO EN CONTRA";
     if (g1.ev === "set") ttl = (winner === n) ? "\u00a1SET!" : "SET EN CONTRA";
+    if (g1.tb && (g1.tbp[1] + g1.tbp[2]) === 0){                       // se acaba de entrar en el tie-break
+      ttl = g1.superTB ? "\u00a1S\u00daPER TIE-BREAK! \u00b7 A 10" : "\u00a1TIE-BREAK! \u00b7 A 7";
+    } else if (g1.tb){
+      ttl = (g1.superTB ? "S\u00daPER TB \u00b7 " : "TIE-BREAK \u00b7 ") + ttl;
+    }
     if (res) res.textContent = ttl;
     if (sc) sc.textContent = tennisScore1v1(n);   // marcador completo "6-4 / 1-0 / 30-15" (como el modo suelto)
     if (go){ go.textContent = "Seguir"; go.classList.remove("ok"); go.classList.remove("wait"); go.onclick = (function(k){ return function(){ ready1v1(k); }; })(n); }
@@ -1474,10 +1486,11 @@ function drawHawk1v1(){
 function ballStake1v1(n){
   if (!g1.on || g1.over || g1.cd || g1.matchOver) return "";
   var o = (n === 1) ? 2 : 1;
-  // tie-break: 6+ y ventaja de 1 cierra el set
+  // tie-break: a un punto del objetivo (7, o 10 en el super) y por delante
   if (g1.tb){
-    if (g1.tbp[n] >= 6 && (g1.tbp[n] - g1.tbp[o]) >= 1)
-      return (d1v1.mode === "limite" && g1.sets[n] >= 1) ? "BOLA DE PARTIDO" : "BOLA DE SET";
+    var tgt = g1.superTB ? 10 : 7;
+    if (g1.tbp[n] >= tgt - 1 && (g1.tbp[n] - g1.tbp[o]) >= 1)
+      return (d1v1.mode === "limite" && (g1.superTB || g1.sets[n] >= 1)) ? "BOLA DE PARTIDO" : "BOLA DE SET";
     return "";
   }
   // en juego normal: 40-30, 40-15, 40-0 o ventaja -> el punto puede cerrar el juego
@@ -2139,7 +2152,7 @@ function beginPlay(token){
   state.games = { me: 0, rival: 0 };
   state.sets = { me: 0, rival: 0 };
   state.setScores = [];
-  state.inTiebreak = false; state.tbp = { me: 0, rival: 0 };
+  state.inTiebreak = false; state.superTB = false; state.tbp = { me: 0, rival: 0 };
   state.matchOver = false; state.matchWinner = null;
   state.matchReadOk = 0; state.matchReadTotal = 0; state.pendingFinish = false;
   state.lastEvent = "point";
@@ -2829,9 +2842,10 @@ function gameScoreStr(){
   if (state.inTiebreak){ var tp = state.tbp || { me: 0, rival: 0 }; return tp.me + "-" + tp.rival; }
   var gp = state.gp || { me: 0, rival: 0 };
   var a = gp.me, b = gp.rival;
+  var golden = (state.disc === "padel") || (state.deuce === "oro");
   if (a >= 3 && b >= 3){
-    if (a === b) return "Iguales";                                       // 40-40
-    if (state.deuce !== "oro") return (a > b) ? "Ventaja m\u00EDa" : "Ventaja rival";
+    if (a === b) return golden ? "Punto de oro" : "Iguales";             // 40-40
+    if (!golden) return (a > b) ? "Ventaja m\u00EDa" : "Ventaja rival";
   }
   var map = ["0", "15", "30", "40"];
   var sa = a <= 3 ? map[a] : "40";
@@ -2843,6 +2857,10 @@ function gameScoreStr(){
    siempre en ese orden ("6-4 / 1-0 / 30-15"), igual que se anuncia un
    marcador en voz. En Juego (un solo juego, sin sets/juegos que
    contar) queda solo el ultimo tramo (los puntos). */
+function tbTargetLabel(){                                   // "TIE-BREAK · A 7" / "SÚPER TIE-BREAK · A 10"
+  if (!state.inTiebreak) return "";
+  return state.superTB ? "SÚPER TIE-BREAK · A 10" : "TIE-BREAK · A 7";
+}
 function tennisScoreStr(){
   var parts = [];
   if (state.mode !== "normal" && state.setScores && state.setScores.length){
@@ -2850,7 +2868,7 @@ function tennisScoreStr(){
       parts.push(state.setScores[i][0] + "-" + state.setScores[i][1]);
     }
   }
-  if (state.mode !== "normal"){
+  if (state.mode !== "normal" && !state.superTB){          // en el super tie-break no hay juegos que contar
     parts.push(state.games.me + "-" + state.games.rival);
   }
   parts.push(gameScoreStr());
@@ -2865,7 +2883,10 @@ function tbUpdateHud(){
   if (cr) cr.style.display = "";
   if (crv) crv.textContent = tennisScoreStr();
   var sl = $("hud-serve-lbl");                      // quien saca (solo Set/Partido: en Juego no hay alternancia)
-  if (sl) sl.textContent = (state.mode === "normal") ? "" : ((state.server === "me") ? "Saco yo" : "Saca rival");
+  if (sl){
+    if (state.inTiebreak) sl.textContent = tbTargetLabel();
+    else sl.textContent = (state.mode === "normal") ? "" : ((state.server === "me") ? "Saco yo" : "Saca rival");
+  }
   var fill = $("game-progress-fill");
   if (fill){ var pt = state.point; fill.style.width = (pt && pt.n) ? Math.round(100 * pt.hits / pt.n) + "%" : "0%"; }
 }
@@ -2876,13 +2897,15 @@ function awardPoint(who){
   if (state.inTiebreak){
     state.tbp[who]++;
     var ta = state.tbp[who], to = state.tbp[other];
-    if (ta >= 7 && (ta - to) >= 2) winSet(who);
+    var tgt = state.superTB ? 10 : 7;               // super tie-break del 3er set (padel) a 10; el normal a 7
+    if (ta >= tgt && (ta - to) >= 2) winSet(who);
     return;
   }
   if (!state.gp) state.gp = { me: 0, rival: 0 };
   state.gp[who]++;
   var a = state.gp[who], b = state.gp[other];
-  var gameWon = (state.deuce === "oro") ? (a >= 4) : (a >= 4 && (a - b) >= 2);
+  var golden = (state.disc === "padel") || (state.deuce === "oro");   // punto de oro (padel): a deuce decide un punto
+  var gameWon = (a >= 4) && (golden || (a - b) >= 2);
   if (gameWon) winGame(who);
 }
 function winGame(who){
@@ -2908,7 +2931,9 @@ function winGame(who){
 function winSet(who){
   state.lastEvent = "set"; state.lastWinner = who;
   var gmMe = state.games.me, gmRv = state.games.rival;
-  if (state.inTiebreak){
+  if (state.superTB){
+    gmMe = state.tbp.me; gmRv = state.tbp.rival;          // el super tie-break se anota con sus puntos (10-x)
+  } else if (state.inTiebreak){
     if (who === "me"){ gmMe = state.count + 1; gmRv = state.count; }
     else { gmRv = state.count + 1; gmMe = state.count; }
     /* el tie-break gana el set sin pasar por winGame() (que es donde se
@@ -2917,11 +2942,15 @@ function winSet(who){
     state.server = (state.server === "rival") ? "me" : "rival";
   }
   state.setScores.push([gmMe, gmRv]);
-  state.inTiebreak = false; state.tbp = { me: 0, rival: 0 };
+  state.inTiebreak = false; state.superTB = false; state.tbp = { me: 0, rival: 0 };
   state.games = { me: 0, rival: 0 };
   state.sets[who]++;
   if (state.mode === "extremo"){ endMatch(who); return; }
   if (state.sets[who] >= 2){ endMatch(who); return; }
+  // PADEL Partido: con 1-1 en sets, el 3er set es un super tie-break a 10
+  if (state.disc === "padel" && state.mode === "limite" && state.sets.me === 1 && state.sets.rival === 1){
+    state.superTB = true; state.inTiebreak = true; state.tbp = { me: 0, rival: 0 };
+  }
   initRival();   // set nuevo (PARTIDO): el rival arranca con estilo base fresco
 }
 function endMatch(who){
@@ -3000,6 +3029,10 @@ function afterPoint(pointWon){
     mid = "Bien leido \u00b7 " + gameScoreStr(); midCol = "#1e9e46";
   } else {
     mid = ""; midCol = "#333333";   // el marcador ya sale completo abajo, en tennisScoreStr()
+  }
+  // al ENTRAR en un tie-break (0-0), indicarlo con su objetivo de puntos
+  if (state.inTiebreak && (state.tbp.me + state.tbp.rival) === 0){
+    mid = state.superTB ? "\u00a1S\u00faper tie-break! \u00b7 a 10" : "\u00a1Tie-break! \u00b7 a 7"; midCol = "#333333";
   }
   state.readOut = false;
   showPointResult(word, mid, tennisScoreStr(), green, midCol);
@@ -3747,11 +3780,12 @@ function winsGameOnPoint(who){
   var o = _oppoW(who);
   if (state.inTiebreak){
     var tp = state.tbp || { me:0, rival:0 };
-    return (tp[who] + 1 >= 7) && ((tp[who] + 1) - tp[o] >= 2);
+    var tgt = state.superTB ? 10 : 7;
+    return (tp[who] + 1 >= tgt) && ((tp[who] + 1) - tp[o] >= 2);
   }
   var gp = state.gp || { me:0, rival:0 };
   var a = gp[who] + 1, b = gp[o];
-  if (state.deuce === "oro") return a >= 4;
+  if (state.disc === "padel" || state.deuce === "oro") return a >= 4;
   return (a >= 4) && (a - b >= 2);
 }
 function winsSetOnPoint(who){
