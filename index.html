@@ -436,7 +436,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v186</div>
+      <div class="app-ver">v187</div>
       </div>
     </div>
   </section>
@@ -1071,6 +1071,12 @@ function launch1v1(ox, oy, tx, ty, from, to){
   g1.ball = { x:ox, y:oy, vx:dx/len*V, vy:dy/len*V, r:r, tAppear:performance.now(), trail:[], to:to, tx:tx, ty:ty,
               k:(g1.k || 0), tFlight:tf, fnet:fn, dist:len,
               p:((g1.pNext != null) ? g1.pNext : 2) };            // 0 sorpresa | 1 patron | 2 tanteo
+  if (gg.padel){
+    var b1 = g1.ball;
+    b1.padel = true; b1.floorBounces = 0; b1.postBudget = gg.ch * 1.05;
+    b1.wallL = gg.wallXL; b1.wallR = gg.wallXR; b1.wallT = gg.wallT; b1.wallB = gg.wallB;
+    b1.netY = gg.cy; b1.homeBottom = (to === 1);       // el campo del destinatario (1 abajo, 2 arriba)
+  }
   g1.k = (g1.k || 0) + 1;                                        // 0 = saque, 1 = resto, 2 = ...
   g1.turn = to;
 }
@@ -1108,7 +1114,7 @@ function hit1v1(pl, px, py){
   launch1v1(px, py, s.latX[pat.lat], tz[pat.dep], pl, opp);
   g1.rally++;
 }
-var WHY1V1 = { fuera:"No llega", punteria:"Fallo de punteria", vacio:"Golpe al aire", campo:"Fuera de turno" };
+var WHY1V1 = { fuera:"No llega", punteria:"Fallo de punteria", vacio:"Golpe al aire", campo:"Fuera de turno", dosbotes:"Doble bote" };
 var PTS1V1 = ["0", "15", "30", "40"];
 function gameLabel1v1(n, box){
   var o = (n === 1) ? 2 : 1;
@@ -1512,18 +1518,50 @@ function draw1v1(){
   }
   ctx.restore();
 }
+function stepPadelBall1v1(b, dt){
+  // padel en 1vs1: la bola bota una vez en el campo del destinatario, sigue viva rebotando
+  // en cristal/malla, la red la mantiene en ese lado, y el 2o bote da el punto al rival.
+  var _px = b.x, _py = b.y;
+  b.x += b.vx * dt; b.y += b.vy * dt;
+  var moved = Math.hypot(b.x - _px, b.y - _py);
+  if (b.floorBounces === 0){
+    bounceCheck(b, _px, _py);
+    if (b._bounced){ b.floorBounces = 1; b.vx *= 0.92; b.vy *= 0.92; }
+  } else {
+    b.postBudget -= moved;
+  }
+  var hit = false;
+  if (b.x < b.wallL + b.r){ b.x = b.wallL + b.r; b.vx = Math.abs(b.vx); hit = true; }
+  else if (b.x > b.wallR - b.r){ b.x = b.wallR - b.r; b.vx = -Math.abs(b.vx); hit = true; }
+  if (b.y < b.wallT + b.r){ b.y = b.wallT + b.r; b.vy = Math.abs(b.vy); hit = true; }
+  else if (b.y > b.wallB - b.r){ b.y = b.wallB - b.r; b.vy = -Math.abs(b.vy); hit = true; }
+  if (hit && b.floorBounces === 0){ b.floorBounces = 1; b.vx *= 0.92; b.vy *= 0.92; }   // toco pared sin bote registrado: cuenta como 1er bote
+  if (b.floorBounces >= 1){                              // la red: no vuelve al campo del rival
+    if (b.homeBottom && b.vy < 0 && b.y < b.netY + b.r){ b.y = b.netY + b.r; b.vy = Math.abs(b.vy) * 0.5; b.vx *= 0.7; hit = true; }
+    else if (!b.homeBottom && b.vy > 0 && b.y > b.netY - b.r){ b.y = b.netY - b.r; b.vy = -Math.abs(b.vy) * 0.5; b.vx *= 0.7; hit = true; }
+  }
+  if (hit){ b.vx *= 0.86; b.vy *= 0.86; }
+  b.trail.push({x:b.x, y:b.y}); if (b.trail.length > TRAIL_LEN) b.trail.shift();
+  if (b.floorBounces >= 1 && b.postBudget <= 0){         // 2o bote: no llego
+    point1v1(b.to === 1 ? 2 : 1, "dosbotes");
+  }
+}
 function loop1v1(ts){
   if (!g1.on) return;
   var dt = g1.last ? Math.min(32, ts - g1.last) : 16; g1.last = ts;
   var b = g1.ball;
   if (b){
-    var _px1 = b.x, _py1 = b.y;
-    b.x += b.vx * dt; b.y += b.vy * dt;
-    bounceCheck(b, _px1, _py1);
-    b.trail.push({x:b.x, y:b.y}); if (b.trail.length > TRAIL_LEN) b.trail.shift();
-    var mg = b.r + 6;
-    if (b.x < -mg || b.x > CW + mg || b.y < -mg || b.y > CH + mg){
-      point1v1(b.to === 1 ? 2 : 1, "fuera");           // no la intercepto
+    if (b.padel){
+      stepPadelBall1v1(b, dt);
+    } else {
+      var _px1 = b.x, _py1 = b.y;
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      bounceCheck(b, _px1, _py1);
+      b.trail.push({x:b.x, y:b.y}); if (b.trail.length > TRAIL_LEN) b.trail.shift();
+      var mg = b.r + 6;
+      if (b.x < -mg || b.x > CW + mg || b.y < -mg || b.y > CH + mg){
+        point1v1(b.to === 1 ? 2 : 1, "fuera");           // no la intercepto
+      }
     }
   }
   draw1v1();
@@ -3325,6 +3363,7 @@ function stepPadelBall(tb, dt){
   else if (tb.x > tb.wallR - tb.r){ tb.x = tb.wallR - tb.r; tb.vx = -Math.abs(tb.vx); hitWall = true; }
   if (tb.y < tb.wallT + tb.r){ tb.y = tb.wallT + tb.r; tb.vy = Math.abs(tb.vy); hitWall = true; }
   else if (tb.y > tb.wallB - tb.r){ tb.y = tb.wallB - tb.r; tb.vy = -Math.abs(tb.vy); hitWall = true; }
+  if (hitWall && tb.floorBounces === 0){ tb.floorBounces = 1; tb.vx *= 0.92; tb.vy *= 0.92; }   // pared sin bote registrado: cuenta como 1er bote
   // la RED: una vez la bola esta en mi campo, no vuelve al del rival. Rebota en la red
   // (que absorbe mucha energia) y se queda en mi lado hasta el 2o bote.
   if (tb.floorBounces >= 1 && tb.vy < 0 && tb.y < tb.netY + tb.r){
