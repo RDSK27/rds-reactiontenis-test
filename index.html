@@ -408,7 +408,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v177</div>
+      <div class="app-ver">v178</div>
       </div>
     </div>
   </section>
@@ -2046,6 +2046,7 @@ function beginPlay(token){
   // [paso 4b] tenis completo: juego -> set (4/6 + desempate) -> partido (al mejor de 3)
   state.tbMode = true;
   state.tbRts = []; state.tbLastRt = null; state.tb = null;
+  state.serveAnim = null;
   state.tbBalls = [];                                // instrumentacion bola a bola
   state.speedFactor = loadSpeed();   // retoma la dificultad de la ocasion anterior
   state.servePoint = 0;              // saque: alterna derecha/izquierda cada punto
@@ -2331,6 +2332,30 @@ function makeServeShot(){
                    : (g.cx + halfW * (0.15 + Math.random() * 0.7));     // saca izq -> cuadro derecho
   var d = { x: boxX, y: boxY };
   return { g: g, o: o, d: d, serve: true };
+}
+/* Saque del jugador (solo Set/Partido, en sus juegos de saque): la bola
+   sale de MI linea de fondo (abajo) hacia el cuadro de saque del rival
+   (arriba) como animacion - no se toca, no puntua. Al llegar al cuadro,
+   llama a cb() y ahi empieza el peloteo normal (el rival "devuelve" y la
+   bola vuelve hacia mi). Mantiene la premisa del test intacta: lo unico
+   que reacciono sigue viniendo del rival. */
+function startServeOut(cb){
+  var g = computeCourtGeom();
+  var halfW = (g.xSglR - g.xSglL) * 0.5;
+  var right = ((state.servePoint || 0) % 2 === 0);         // mismo lado que usara makeServeShot
+  var ox = right ? (g.cx + halfW * 0.62) : (g.cx - halfW * 0.62);
+  var oy = g.y1 - g.ch * 0.04;                             // mi linea de fondo
+  var boxY = g.cy - (g.cy - g.ySrvT) * (0.45 + Math.random() * 0.4);   // dentro del cuadro del rival
+  var boxX = right ? (g.cx - halfW * (0.20 + Math.random() * 0.5))     // cruzado
+                   : (g.cx + halfW * (0.20 + Math.random() * 0.5));
+  var dx = boxX - ox, dy = boxY - oy;
+  var len = Math.hypot(dx, dy) || 1;
+  var V = g.ch * (state.speedFactor || TB_SPEED_FACTOR) * 1.15;        // saque: algo rapido
+  var r = Math.max(6, Math.round(g.base * TB_RADIUS_FACTOR));
+  soundRacket();
+  state.serveAnim = { x: ox, y: oy, vx: dx / len * V, vy: dy / len * V, r: r,
+                      tx: boxX, ty: boxY, trail: [], tAppear: performance.now(),
+                      cb: (typeof cb === "function") ? cb : null };
 }
 
 // ---------- Bola sorpresa: ruptura del patron en Juego/Set/Partido ----------
@@ -3070,9 +3095,14 @@ function startPoint(){
   state.point.tacSide = (Math.random() < 0.5) ? 0 : 2;
   state.point.tacSeed = (Math.random() < 0.5) ? 0 : 1;
   state.tb = null;
+  state.serveAnim = null;
   hideCenter();
   tbUpdateHud();
-  spawnTennisBall(null, null);
+  if (state.mode !== "normal" && state.server === "me"){
+    startServeOut(function(){ spawnTennisBall(null, null); });   // saco yo: animacion hacia el rival, luego empieza el peloteo
+  } else {
+    spawnTennisBall(null, null);
+  }
 }
 function ballWentOut(tb){
   if (!tb) return false;
@@ -3173,6 +3203,18 @@ function loop(ts){
     }
   }
 
+  if (state.active && state.tbMode && state.serveAnim){
+    var sa = state.serveAnim;
+    sa.x += sa.vx * dt; sa.y += sa.vy * dt;
+    sa.trail.push({ x: sa.x, y: sa.y }); if (sa.trail.length > TRAIL_LEN) sa.trail.shift();
+    drawTennisBall(sa);
+    if (sa.y <= sa.ty){                       // la bola de saque llego al cuadro del rival
+      state.serveAnim = null;
+      var saCb = sa.cb; sa.cb = null;
+      if (saCb) saCb();                       // arranca el peloteo (spawnTennisBall)
+    }
+  }
+
   if (state.active && !state.tbMode && cronoMode()){
     var cel = $("hud-crono-val");
     if (cel) cel.textContent = fmtClock(performance.now() - state.cronoStart);
@@ -3251,6 +3293,7 @@ function handleTap(clientX, clientY){
   // [paso 3] interceptar la pelota: acierto continua el punto; fallo lo pierde
   if (state.tbMode && state.active){
     if (!state.point || state.point.over) return;   // pausa entre puntos
+    if (state.serveAnim) return;                     // mi saque en curso: nada que interceptar todavia
     var rectT = canvas.getBoundingClientRect();
     var pxT = clientX - rectT.left, pyT = clientY - rectT.top;
     if (state.tb){
