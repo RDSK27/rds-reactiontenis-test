@@ -216,10 +216,15 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 #btn-seguir.locked{opacity:0.45;filter:grayscale(0.55);}
 #btn-read{pointer-events:auto;cursor:pointer;border:none;color:#fff;font-weight:900;font-size:28px;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #ff6a55 0%, #e01e0e 45%, #8a0f06 100%);box-shadow:inset 0 2px 4px rgba(255,255,255,0.3), 0 4px 10px rgba(0,0,0,0.4);animation:readPulse 0.9s ease-in-out infinite;}
 @keyframes readPulse{0%{transform:scale(1);box-shadow:inset 0 2px 4px rgba(255,255,255,0.3),0 0 0 0 rgba(224,30,14,0.7),0 4px 10px rgba(0,0,0,0.4);}70%{transform:scale(1.14);box-shadow:inset 0 2px 4px rgba(255,255,255,0.3),0 0 0 14px rgba(224,30,14,0),0 5px 14px rgba(0,0,0,0.45);}100%{transform:scale(1);box-shadow:inset 0 2px 4px rgba(255,255,255,0.3),0 0 0 0 rgba(224,30,14,0),0 4px 10px rgba(0,0,0,0.4);}}
-#read-panel{pointer-events:auto;background:rgba(255,255,255,0.96);border-radius:8px;padding:10px 12px;width:240px;box-sizing:border-box;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
-#read-panel .read-q{font-size:13px;font-weight:800;color:#333;margin:0 0 8px;text-align:center;}
-#read-panel .read-opt{display:block;width:100%;margin:5px 0;padding:8px 10px;font-size:12px;font-weight:700;border:2px solid #c05c34;border-radius:6px;background:#fff;color:#7a3418;cursor:pointer;}
+#read-panel{pointer-events:auto;background:rgba(255,255,255,0.96);border-radius:8px;padding:10px 12px;width:250px;box-sizing:border-box;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
+#read-panel .read-q{font-size:12px;font-weight:800;color:#333;margin:9px 0 5px;text-align:center;}
+#read-panel .read-q:first-child{margin-top:0;}
+#read-panel .read-grp{display:flex;flex-wrap:wrap;gap:5px;}
+#read-panel .read-opt{flex:1 1 46%;margin:0;padding:7px 6px;font-size:11px;font-weight:700;border:2px solid #c05c34;border-radius:6px;background:#fff;color:#7a3418;cursor:pointer;}
 #read-panel .read-opt:active{background:#f2e0d6;}
+#read-panel .read-opt.sel{background:#c05c34;color:#fff;}
+#read-panel .read-confirm{display:block;width:100%;margin:11px 0 0;padding:9px 10px;font-size:12px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;border:none;border-radius:6px;background:#1e9e46;color:#fff;cursor:pointer;}
+#read-panel .read-confirm:disabled{background:#bdbdbd;cursor:default;}
 #read-panel .read-res{font-size:13px;font-weight:800;margin:4px 0;text-align:center;}
 .pause-overlay{position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);}
 .pause-box{background:#fff;border:3px solid var(--rds-red);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;align-items:center;box-sizing:border-box;width:min(90%,340px);min-width:190px;}
@@ -408,7 +413,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v179</div>
+      <div class="app-ver">v180</div>
       </div>
     </div>
   </section>
@@ -520,8 +525,6 @@ table.rk tr.top3 td{background:#f7efe7;}
         <div class="pause-title">MODO DE JUEGO</div>
         <button class="pause-btn mm-btn" data-mm="azar">Azar</button>
         <button class="pause-btn mm-btn" data-mm="tactica">T&#225;ctica</button>
-        <button class="pause-btn mm-btn" data-mm="estrategia">Estrategia</button>
-        <button class="pause-btn mm-btn" data-mm="total">Total</button>
         <div class="mm-count" id="mm-count">
           <button class="mm-cbtn sel" data-count="4">SET 4</button>
           <button class="mm-cbtn" data-count="6">SET 6</button>
@@ -547,8 +550,6 @@ table.rk tr.top3 td{background:#f7efe7;}
           <select id="rival-mode" style="width:100%;box-sizing:border-box;padding:9px 10px;font-size:13px;font-weight:700;border:2px solid #111;border-radius:6px;background:#fff;-webkit-user-select:text;user-select:text;">
             <option value="azar">Azar</option>
             <option value="tactica">Tactica</option>
-            <option value="estrategia">Estrategia</option>
-            <option value="tacest">Tact+Estrat</option>
           </select>
           <select id="rival-sub" style="width:100%;box-sizing:border-box;padding:9px 10px;font-size:13px;font-weight:700;border:2px solid #111;border-radius:6px;background:#fff;margin-top:8px;-webkit-user-select:text;user-select:text;"></select>
           <select id="rival-sub2" style="width:100%;box-sizing:border-box;padding:9px 10px;font-size:13px;font-weight:700;border:2px solid #111;border-radius:6px;background:#fff;margin-top:8px;-webkit-user-select:text;user-select:text;"></select>
@@ -605,8 +606,6 @@ table.rk tr.top3 td{background:#f7efe7;}
       <div class="rank-tabs" id="rk-matchmode">
         <div class="opt rank-tab" data-matchmode="azar">AZAR</div>
         <div class="opt rank-tab sel" data-matchmode="tactica">T&#193;CTICA</div>
-        <div class="opt rank-tab" data-matchmode="estrategia">ESTRATEGIA</div>
-        <div class="opt rank-tab" data-matchmode="total">TOTAL</div>
       </div>
       <div id="rk-table"></div>
     </div>
@@ -742,11 +741,10 @@ var state = {
   rivalStyle: null,
   rivalTactic: null,
   loseStreak: 0,
-  triedRelated: false,
   servePoint: 0,
   playMode: "azar",
   playTactic: "esquinas",
-  playStyle: "pasabolas",
+  playStyle: "indiferente",
   matchMode: "azar",
   lastGameStyle: null,
   lastGameTactic: null,
@@ -810,8 +808,8 @@ function start1v1(){
 }
 var p1v1 = [
   null,
-  { mode:"tactica", tactic:"esquinas", style:"pasabolas" },   // Jugador 1 (abajo)
-  { mode:"tactica", tactic:"esquinas", style:"pasabolas" }    // Jugador 2 (arriba)
+  { tactic:"esquinas", style:"indiferente" },   // Jugador 1 (abajo): patron + estilo
+  { tactic:"esquinas", style:"indiferente" }    // Jugador 2 (arriba)
 ];
 var d1v1 = { mode:"normal", count:4 };
 function ddClose(){ var pk = $("dd-pick"); if (pk) pk.style.display = "none"; }
@@ -846,25 +844,12 @@ function fillSel(el, opts, cur){
   for (var i=0;i<opts.length;i++){ h += '<option value="' + opts[i][0] + '"' + (opts[i][0]===cur ? ' selected' : '') + '>' + opts[i][1] + '</option>'; }
   el.innerHTML = h; el.value = cur; el.disabled = false;
 }
-var MODE_OPTS_1V1 = [["tactica","T\u00e1ctica"],["estrategia","Estrategia"],["tacest","T\u00e1ct+Estrat"]];
 function refresh1v1Player(n){
-  var pl = p1v1[n], m = pl.mode;
-  ddRender("p" + n + "-mode", MODE_OPTS_1V1, m, function(v){ p1v1[n].mode = v; refresh1v1Player(n); }, false, n, "Modo");
-  if (m === "tactica"){
-    if (!hasOpt(TACTIC_OPTS, pl.tactic)) pl.tactic = TACTIC_OPTS[0][0];
-    ddRender("p" + n + "-sub", TACTIC_OPTS, pl.tactic, function(v){ p1v1[n].tactic = v; refresh1v1Player(n); }, false, n, "T\u00e1ctica");
-    ddRender("p" + n + "-sub2", [], null, function(){}, true, n, "");
-  } else {
-    if (!hasOpt(STYLE_OPTS, pl.style)) pl.style = STYLE_OPTS[0][0];
-    ddRender("p" + n + "-sub", STYLE_OPTS, pl.style, function(v){ p1v1[n].style = v; refresh1v1Player(n); }, false, n, "Estilo");
-    if (m === "tacest"){
-      var menu = STYLE_TACTICS[pl.style] || ALL_TACTICS;
-      if (menu.indexOf(pl.tactic) < 0) pl.tactic = menu[0];
-      var o2 = [];
-      for (var j=0;j<menu.length;j++){ o2.push([menu[j], readLabel(TACTIC_OPTS, menu[j])]); }
-      ddRender("p" + n + "-sub2", o2, pl.tactic, function(v){ p1v1[n].tactic = v; refresh1v1Player(n); }, false, n, "T\u00e1ctica");
-    } else { ddRender("p" + n + "-sub2", [], null, function(){}, true, n, ""); }
-  }
+  var pl = p1v1[n];
+  pl.tactic = normTactic(pl.tactic);
+  pl.style  = normStyle(pl.style);
+  ddRender("p" + n + "-sub",  TACTIC_OPTS, pl.tactic, function(v){ p1v1[n].tactic = v; refresh1v1Player(n); }, false, n, "T\u00e1ctica");
+  ddRender("p" + n + "-sub2", STYLE_OPTS,  pl.style,  function(v){ p1v1[n].style  = v; refresh1v1Player(n); }, false, n, "Estilo");
 }
 function bind1v1Player(n){ /* los desplegables propios se cablean en ddRender */ }
 function syncD1v1(){
@@ -937,6 +922,8 @@ function markPicked1v1(n){
   p1v1[n]._srpCool = 0;
   p1v1[n]._hist = [];
   p1v1[n]._cool = 0;
+  p1v1[n]._side = null;                               // lado de "insistencia" y fase de alternancia: se re-sortean con el plan nuevo
+  p1v1[n]._seed = null;
   if (!g1.on) syncStart1v1();
 }
 // ---------- Motor 1vs1 ----------
@@ -977,32 +964,31 @@ function brkPush(cfg, tac, lat, dep){
   if (cfg._hist.length > 4) cfg._hist.shift();
 }
 function pattern1v1(pl, rallyIgnored){
-  // devuelve {lat, depth} para la bola que pl MANDA al contrario
-  var cfg = p1v1[pl], m = cfg.mode;
+  // devuelve {lat, dep} para la bola que pl MANDA al contrario (dep: 0 fondo / 1 media / 2 corta)
+  var cfg = p1v1[pl];
   cfg._n = (cfg._n || 0);            // contador PROPIO de golpes de este jugador
-  var rally = cfg._n;                // cada tactica alterna respecto a SUS golpes
+  var rally = cfg._n;
   cfg._n++;
-  var tac = (m === "tactica" || m === "tacest") ? cfg.tactic : null;
-  var sty = (m === "estrategia" || m === "tacest") ? cfg.style : null;
+  var tac = normTactic(cfg.tactic);
+  var sty = normStyle(cfg.style);
+  if (cfg._seed == null) cfg._seed = (Math.random() < 0.5) ? 0 : 1;
+  var alt = (((rally + cfg._seed) % 2) === 0) ? 0 : 2;
   var lat = 1, dep = 0;
-  if (tac === "esquinas"){ lat = (rally % 2 === 0) ? 0 : 2; dep = 0; }
-  else if (tac === "insistencia"){ if (cfg._side == null) cfg._side = (Math.random() < 0.5) ? 0 : 2; lat = cfg._side; dep = 0; }
-  else if (tac === "prof_corta"){ lat = (rally % 2 === 0) ? 0 : 2; dep = (rally % 3 === 2) ? 2 : 0; }
-  else if (tac === "corto_largo"){ lat = (rally % 2 === 0) ? 0 : 2; dep = (rally % 2 === 0) ? 2 : 0; }
-  else if (tac === "media_volea"){ lat = Math.floor(Math.random() * 3); dep = (rally % 2 === 0) ? 1 : 2; }
-  else if (tac === "prof_dejada"){ lat = Math.floor(Math.random() * 3); dep = (rally % 4 === 3) ? 2 : 0; }
-  else if (tac === "dejada_subir"){ lat = Math.floor(Math.random() * 3); dep = (rally < 2) ? 1 : 2; }
-  else { lat = Math.floor(Math.random() * 3); dep = Math.floor(Math.random() * 3); }
-  if (sty && !tac){
-    var P = STYLE_PARAMS[sty];
-    var r = Math.random(), acc = 0, k = 0;
-    for (k = 0; k < P.p.length; k++){ acc += P.p[k]; if (r <= acc) break; }
-    dep = Math.min(2, k);
-    lat = (Math.random() < P.sideVar) ? Math.floor(Math.random() * 3) : lat;
+  if (tac === "esquinas"){ lat = alt; dep = 0; }
+  else if (tac === "insistencia"){ if (cfg._side == null) cfg._side = (Math.random() < 0.5) ? 0 : 2; lat = cfg._side; dep = (rally % 3 === 0) ? 1 : 0; }
+  else if (tac === "prof_corta"){ lat = alt; dep = (rally % 4 === 3) ? 2 : 0; }
+  else if (tac === "subir_red"){ lat = alt; dep = (rally < 2) ? 0 : ((rally < 4) ? 1 : 2); }
+  else { lat = alt; dep = 0; }
+  // estilo (siempre presente): nudge de profundidad + dispersion lateral + dejadas extra
+  var P = STYLE_PARAMS[sty];
+  if (P){
+    if (P.rowShift) dep = Math.max(0, Math.min(2, dep + P.rowShift));
+    if (P.scatter && Math.random() < P.scatter * 2) lat = Math.floor(Math.random() * 3);
+    if (P.dropAdd && dep === 0 && Math.random() < P.dropAdd) dep = 2;
   }
   cfg._seen = (cfg._seen || 0) + 1;      // golpes que este jugador lleva mandados con su plan ACTUAL
   var srp = false;
-  if (tac && cfg._seen > SRP_MIN){       // antes de SRP_MIN no hay sorpresa: nadie puede leer lo que no ha visto
+  if (cfg._seen > SRP_MIN){              // antes de SRP_MIN no hay sorpresa: nadie puede leer lo que no ha visto
     if ((cfg._srpCool || 0) <= 0){
       var br = brkBreak(cfg, tac, lat);  // la secuencia se ha repetido dos veces (esquinas/insistencia)
       if (br || Math.random() < SRP_P) srp = true;   // ... o sorpresa probabilistica, como en el motor normal
@@ -1016,7 +1002,7 @@ function pattern1v1(pl, rallyIgnored){
     dep = 2;                                                                        // y corta
   }
   brkPush(cfg, tac, lat, dep);           // se guarda el golpe REAL, no el previsto
-  g1.pNext = tac ? (srp ? 0 : ((cfg._seen > SRP_MIN) ? 1 : 2)) : 2;   // sin tactica no hay patron que leer
+  g1.pNext = srp ? 0 : ((cfg._seen > SRP_MIN) ? 1 : 2);
   return { lat: lat, dep: dep };
 }
 var SPEED_1V1 = 0.70;   // ajuste fino del 1vs1: 0.85=rapida(507ms) 0.70=viva(615ms) 0.60=media(718ms) 0.50=comoda(861ms)
@@ -1030,8 +1016,8 @@ function speed1v1(pl){
   // misma formula que el modo normal (V = ch * TB_SPEED_FACTOR), pero el loop del 1v1 usa dt en ms -> /1000
   var g = computeCourtGeom();
   var base = g.ch * TB_SPEED_FACTOR / 1000;
-  var sty = (cfg.mode === "estrategia" || cfg.mode === "tacest") ? cfg.style : null;
-  var mul = sty ? STYLE_PARAMS[sty].speed : 1;
+  var sp = STYLE_PARAMS[normStyle(cfg.style)];
+  var mul = sp ? sp.speed : 1;
   return base * mul * SPEED_1V1 * rallyMul1v1();
 }
 function serve1v1(){
@@ -1388,23 +1374,14 @@ function openTac1v1(n){
   // tocar Tactica te "des-confirma": nadie puede quedar listo por accidente mientras elige
   g1.ready[n] = false;
   var goN = $("pt1v1-go-" + n);
-  if (goN){ goN.textContent = (g1.on ? "Seguir" : "Seguir"); goN.classList.remove("ok"); }
-  ddOpen(n, "Modo", MODE_OPTS_1V1, p1v1[n].mode, function(v){
-    p1v1[n].mode = v;
-    if (v === "tactica"){
-      ddOpen(n, "T\u00e1ctica", TACTIC_OPTS, p1v1[n].tactic, function(t){ p1v1[n].tactic = t; markPicked1v1(n); });
-    } else {
-      ddOpen(n, "Estilo", STYLE_OPTS, p1v1[n].style, function(s){
-        p1v1[n].style = s;
-        if (p1v1[n].mode === "tacest"){
-          var menu = STYLE_TACTICS[s] || ALL_TACTICS;
-          if (menu.indexOf(p1v1[n].tactic) < 0) p1v1[n].tactic = menu[0];
-          var o2 = [];
-          for (var j=0;j<menu.length;j++){ o2.push([menu[j], readLabel(TACTIC_OPTS, menu[j])]); }
-          ddOpen(n, "T\u00e1ctica", o2, p1v1[n].tactic, function(t){ p1v1[n].tactic = t; markPicked1v1(n); });
-        } else { markPicked1v1(n); }
-      });
-    }
+  if (goN){ goN.textContent = "Seguir"; goN.classList.remove("ok"); }
+  // dos elecciones encadenadas: patron (4) y luego estilo (3)
+  ddOpen(n, "T\u00e1ctica", TACTIC_OPTS, p1v1[n].tactic, function(t){
+    p1v1[n].tactic = t;
+    ddOpen(n, "Estilo", STYLE_OPTS, p1v1[n].style, function(s){
+      p1v1[n].style = s;
+      markPicked1v1(n);
+    });
   });
 }
 function bindTac1v1(n){ /* los desplegables propios se cablean en ddRender */ }
@@ -2366,20 +2343,31 @@ var OUT_BALL_RATE = 0.10;   // proporcion de bolas del rival que se van FUERA (0
 var SRP_MIN  = 8;      // golpes del plan que hay que ver antes de que pueda salir una sorpresa
 var SRP_P    = 0.25;   // probabilidad de sorpresa por bola, pasado el umbral
 var SRP_COOL = 3;      // golpes de enfriamiento despues de una sorpresa
-function tacticOrigin(origins){
-  var p = state.point, key = p.tactic, i = p.hits, n = p.n;
+/* Fase del patron dentro del punto, comun a origen y destino.
+   La alternancia izq/der y el lado fijo de "insistencia" vienen de
+   state.gameplan (fijados 1 vez por juego en setGamePlan) -> el patron
+   NO baila dentro del juego. Devuelve {row, lat, srp}:
+   row 0 fondo / 1 media / 2 corta ; lat 0 izq / 1 centro / 2 der. */
+function tacticPhase(i, n){
+  var gp = state.gameplan || {};
+  var seed = gp.seed || 0, side = (gp.side != null ? gp.side : 0);
   var last = (i >= n - 1);
-  var alt = (((i + (p.tacSeed || 0)) % 2) === 0) ? 0 : 2;   // alterna izq/der
+  var alt = (((i + seed) % 2) === 0) ? 0 : 2;
+  var key = state.point ? state.point.tactic : null;
   var row = 0, lat = 1;
   if (key === "esquinas"){ row = 0; lat = alt; }
-  else if (key === "insistencia"){ lat = (p.tacSide != null ? p.tacSide : 0); row = (i % 3 === 0) ? 1 : 0; }
-  else if (key === "prof_corta"){ if (last){ row = 2; lat = alt; } else { row = 0; lat = alt; } }
-  else if (key === "corto_largo"){ if (i % 2 === 1){ row = 2; lat = 0; } else { row = 0; lat = 2; } }
-  else if (key === "media_volea"){ row = (i % 2 === 1) ? 1 : 2; lat = alt; }
-  else if (key === "prof_dejada"){ if (last){ row = 2; lat = alt; } else { row = 0; lat = 1; } }
-  else if (key === "dejada_subir"){ row = (i <= Math.ceil(n / 2)) ? 1 : 2; lat = alt; }
+  else if (key === "insistencia"){ lat = side; row = (i % 3 === 0) ? 1 : 0; }
+  else if (key === "prof_corta"){ row = last ? 2 : 0; lat = alt; }
+  else if (key === "subir_red"){
+    var ph = (n > 1) ? i / (n - 1) : 1;                        // 0..1 avance del punto
+    row = (ph < 0.34) ? 0 : ((ph < 0.67) ? 1 : 2);             // fondo -> media -> corta
+    lat = alt;
+  }
   else { row = 0; lat = 1; }
-  state.planSeen = (state.planSeen || 0) + 1;                 // golpes del plan vistos en ESTE juego
+  // estilo: nudge de profundidad del ORIGEN (pasabolas mas al fondo, atacante mas a la red)
+  var sp = state.point ? STYLE_PARAMS[state.point.style] : null;
+  if (sp && sp.rowShift){ row = Math.max(0, Math.min(2, row + sp.rowShift)); }
+  state.planSeen = (state.planSeen || 0) + 1;
   var srp = (state.planSeen > SRP_MIN) && ((state.srpCool || 0) <= 0) && (Math.random() < SRP_P);
   if (srp){
     state.srpCool = SRP_COOL;
@@ -2388,39 +2376,64 @@ function tacticOrigin(origins){
     state.pNext = 0;                                                                // 0 = sorpresa
   } else {
     if (state.srpCool > 0) state.srpCool--;
-    state.pNext = (state.planSeen > SRP_MIN) ? 1 : 2;          // 1 = patron ya legible | 2 = tanteo (no cuenta)
+    state.pNext = (state.planSeen > SRP_MIN) ? 1 : 2;          // 1 = patron ya legible | 2 = tanteo
   }
   if (lat < 0) lat = 0; if (lat > 2) lat = 2;
   if (row < 0) row = 0; if (row > 2) row = 2;
-  return origins[row * 3 + lat];
+  return { row: row, lat: lat, srp: srp };
+}
+function tacticOrigin(origins){
+  var p = state.point;
+  var ph = tacticPhase(p.hits, p.n);
+  state._tacPh = ph;                       // lo reutiliza tacticDest (misma bola)
+  return origins[ph.row * 3 + ph.lat];
+}
+/* Destino: donde bota la bola del rival EN MI CAMPO, siguiendo el patron
+   (no aleatorio). dests: 0..4 fondo (izq->der), 5..9 adelante junto a mi T. */
+function tacticDest(s){
+  var ph = state._tacPh || { row: 0, lat: 1, srp: false };
+  var deepIdx  = (ph.lat === 0) ? 0 : ((ph.lat === 2) ? 4 : 2);   // esquina/centro al fondo
+  var shortIdx = (ph.lat === 0) ? 5 : ((ph.lat === 2) ? 9 : 7);   // corta correspondiente
+  var idx;
+  if (ph.srp) idx = shortIdx;                                     // la sorpresa cae corta
+  else if (ph.row === 2) idx = shortIdx;                          // corta / red
+  else if (ph.row === 1) idx = (ph.lat === 0) ? 1 : ((ph.lat === 2) ? 3 : 2);   // media
+  else idx = deepIdx;                                             // fondo
+  var d = { x: s.dests[idx].x, y: s.dests[idx].y };
+  var sp = state.point ? STYLE_PARAMS[state.point.style] : null;
+  if (sp){
+    if (sp.dropAdd && idx < 5 && Math.random() < sp.dropAdd){     // dejada extra: baja la bola a la fila corta
+      d.x = s.dests[idx + 5].x; d.y = s.dests[idx + 5].y;
+    }
+    if (sp.scatter){
+      var w = s.dests[4].x - s.dests[0].x;                        // ancho util aprox
+      d.x += (Math.random() * 2 - 1) * sp.scatter * w;
+      var lo = s.dests[0].x - w * 0.12, hi = s.dests[4].x + w * 0.12;   // deja rozar la linea, no salir a lo bestia
+      if (d.x < lo) d.x = lo; if (d.x > hi) d.x = hi;
+    }
+  }
+  return d;
 }
 function makeTacticShot(){
   var g = computeCourtGeom();
   var s = computeSites(g);
   var o = tacticOrigin(s.origins);
-  var d = s.dests[Math.floor(Math.random() * s.dests.length)];
-  if (state.point && state.point.style) state.styleSpeed = styleSpeedFor(state.point.style);
+  var d = tacticDest(s);
+  state.styleSpeed = (state.point && state.point.style) ? styleSpeedFor(state.point.style) : 1;
   return { g: g, o: o, d: d, p: state.pNext };   // 0 sorpresa | 1 patron | 2 tanteo
 }
 
-// Estilos del rival (modo Estrategia): parametros de las bolas que vienen
+// Estilo del rival = modificador que se aplica ENCIMA de la tactica (el patron).
+//  speed    multiplicador de velocidad de bola
+//  rowShift nudge de profundidad del origen (-1 mas al fondo, +1 mas a la red)
+//  scatter  dispersion del bote en mi campo (fraccion del ancho util)
+//  dropAdd  prob. extra de convertir una bola profunda en corta (dejada)
+//  speedVar jitter de velocidad por bola
 var STYLE_PARAMS = {
-  pasabolas:       { p:[0.82, 0.16, 0.02], speed:0.85, sideVar:0.25, speedVar:0.00 },
-  atacante:        { p:[0.40, 0.33, 0.27], speed:1.15, sideVar:0.70, speedVar:0.05 },
-  contragolpeador: { p:[0.45, 0.30, 0.25], speed:1.00, sideVar:0.85, speedVar:0.20 },
-  todo_pista:      { p:[0.40, 0.35, 0.25], speed:1.08, sideVar:0.90, speedVar:0.12 }
+  pasabolas:   { speed:0.85, rowShift:-1, scatter:0.05, dropAdd:0.00, speedVar:0.00 },
+  indiferente: { speed:1.00, rowShift: 0, scatter:0.10, dropAdd:0.00, speedVar:0.05 },
+  atacante:    { speed:1.15, rowShift:+1, scatter:0.18, dropAdd:0.16, speedVar:0.10 }
 };
-// Menu de tacticas coherentes por estilo (modo Tac+Estrat)
-var STYLE_TACTICS = {
-  pasabolas:       ["esquinas", "insistencia"],
-  atacante:        ["media_volea", "dejada_subir", "prof_corta"],
-  contragolpeador: ["corto_largo", "esquinas", "prof_corta", "media_volea"],
-  todo_pista:      ["esquinas", "insistencia", "prof_corta", "corto_largo", "media_volea", "prof_dejada", "dejada_subir"]
-};
-function pickStyleTactic(styleKey){
-  var menu = STYLE_TACTICS[styleKey] || STYLE_TACTICS.todo_pista;
-  return menu[Math.floor(Math.random() * menu.length)];
-}
 function styleSpeedFor(styleKey){
   var sp = STYLE_PARAMS[styleKey]; if (!sp) return 1;
   var sv = sp.speedVar ? (1 + (Math.random() * 2 - 1) * sp.speedVar) : 1;
@@ -2430,96 +2443,57 @@ function styleSpeedFor(styleKey){
 function gameKey(){
   return state.sets.me + "-" + state.sets.rival + "|" + state.games.me + "-" + state.games.rival + "|" + (state.inTiebreak ? "tb" : "g");
 }
-// --- Rival adaptativo (capa 3): familias y evolucion por juego ---
-var RIVAL_STYLES = ["pasabolas", "atacante", "contragolpeador", "todo_pista"];
-var STYLE_FAMILY = { pasabolas:"def", contragolpeador:"def", atacante:"of", todo_pista:"of" };
-var FAMILY_STYLES = { def:["pasabolas","contragolpeador"], of:["atacante","todo_pista"] };
-var REPEAT_PROB = 0.90;
-var ALL_TACTICS = ["esquinas","insistencia","prof_corta","corto_largo","media_volea","prof_dejada","dejada_subir"];
-function relatedStyle(st){ var l = FAMILY_STYLES[STYLE_FAMILY[st]]; return (l[0] === st) ? l[1] : l[0]; }
-function otherFamilyStyle(st){ var o = (STYLE_FAMILY[st] === "def") ? "of" : "def"; var l = FAMILY_STYLES[o]; return l[Math.floor(Math.random() * l.length)]; }
-function pickDifferentTactic(styleKey, cur){
-  var menu = STYLE_TACTICS[styleKey] || STYLE_TACTICS.todo_pista;
-  if (menu.length <= 1) return menu[0];
-  var t; do { t = menu[Math.floor(Math.random() * menu.length)]; } while (t === cur);
-  return t;
-}
+// --- Rival adaptativo: evolucion del plan por juego ---
+var RIVAL_STYLES = ["pasabolas", "indiferente", "atacante"];
+var ALL_TACTICS = ["esquinas", "insistencia", "prof_corta", "subir_red"];
 function pickDifferentTacticAny(cur){
   if (ALL_TACTICS.length <= 1) return ALL_TACTICS[0];
   var t; do { t = ALL_TACTICS[Math.floor(Math.random() * ALL_TACTICS.length)]; } while (t === cur);
   return t;
 }
+function pickDifferentStyle(cur){
+  if (RIVAL_STYLES.length <= 1) return RIVAL_STYLES[0];
+  var t; do { t = RIVAL_STYLES[Math.floor(Math.random() * RIVAL_STYLES.length)]; } while (t === cur);
+  return t;
+}
 function initRival(){
   var mm = state.matchMode || "azar";
-  state.loseStreak = 0; state.triedRelated = false; state.planRepeats = 0;
-  if (mm === "tactica"){ state.rivalStyle = null; state.rivalTactic = ALL_TACTICS[Math.floor(Math.random() * ALL_TACTICS.length)]; }
-  else if (mm === "estrategia"){ state.rivalStyle = RIVAL_STYLES[Math.floor(Math.random() * RIVAL_STYLES.length)]; state.rivalTactic = null; }
-  else if (mm === "total"){ state.rivalStyle = RIVAL_STYLES[Math.floor(Math.random() * RIVAL_STYLES.length)]; state.rivalTactic = pickStyleTactic(state.rivalStyle); }
-  else { state.rivalStyle = null; state.rivalTactic = null; }
+  state.loseStreak = 0; state.planRepeats = 0;
+  if (mm === "tactica"){
+    state.rivalTactic = ALL_TACTICS[Math.floor(Math.random() * ALL_TACTICS.length)];
+    state.rivalStyle  = RIVAL_STYLES[Math.floor(Math.random() * RIVAL_STYLES.length)];
+  } else {
+    state.rivalTactic = null; state.rivalStyle = null;
+  }
 }
 var REPEAT_P = 0.30;   // probabilidad de repetir plan AUNQUE el rival haya dominado el juego
                        // (si repite mucho, el test "?" se contesta comparando con el juego anterior)
 function adaptRival(rivalWon, myPts){
   if (state.mode === "normal") return;                 // JUEGO no adapta
   var mm = state.matchMode || "azar";
-  if (mm === "azar") return;
+  if (mm !== "tactica") return;
   // Repetir SOLO si el rival gano dejandome en 0 o 15 (myPts <= 1) y aun no se ha repetido.
-  // Maximo 2 juegos seguidos con el mismo plan; en cualquier otro caso, cambia.
   var dominante = rivalWon && ((myPts || 0) <= 1);
   if (dominante && (state.planRepeats || 0) < 1 && Math.random() < REPEAT_P){
     state.planRepeats = (state.planRepeats || 0) + 1;  // 2o juego con el mismo plan
     return;
   }
-  state.planRepeats = 0;                               // cambio obligado
-  if (mm === "tactica"){
-    state.rivalTactic = pickDifferentTacticAny(state.rivalTactic);
-  } else if (mm === "estrategia"){
-    state.rivalStyle = state.triedRelated ? otherFamilyStyle(state.rivalStyle) : relatedStyle(state.rivalStyle);
-    state.triedRelated = !state.triedRelated;
-  } else {                                             // total
-    if (state.triedRelated){
-      state.rivalStyle = otherFamilyStyle(state.rivalStyle);
-      state.rivalTactic = pickStyleTactic(state.rivalStyle);
-      state.triedRelated = false;
-    } else {
-      var nt = pickDifferentTactic(state.rivalStyle, state.rivalTactic);
-      if (nt === state.rivalTactic){ state.rivalStyle = relatedStyle(state.rivalStyle); state.rivalTactic = pickStyleTactic(state.rivalStyle); }
-      else { state.rivalTactic = nt; }
-      state.triedRelated = true;
-    }
-  }
+  state.planRepeats = 0;                               // cambio obligado: rota la tactica y a veces el estilo
+  state.rivalTactic = pickDifferentTacticAny(state.rivalTactic);
+  if (Math.random() < 0.5) state.rivalStyle = pickDifferentStyle(state.rivalStyle);
 }
 function setGamePlan(){
   var plan = { style: null, tactic: null };
-  if (state.mode === "normal"){
-    var pm = state.playMode;                           // JUEGO: lo condiciona el selector
-    if (pm === "tactica") plan.tactic = state.playTactic;
-    else if (pm === "estrategia") plan.style = state.playStyle;
-    else if (pm === "tacest"){ plan.style = state.playStyle; var mnu = STYLE_TACTICS[state.playStyle] || ALL_TACTICS; plan.tactic = (mnu.indexOf(state.playTactic) >= 0) ? state.playTactic : pickStyleTactic(state.playStyle); }
-  } else {
-    plan.style = state.rivalStyle;    // SET/PARTIDO: segun matchMode (null en azar/tactica)
-    plan.tactic = state.rivalTactic;  // null en azar/estrategia
+  var pm = (state.mode === "normal") ? state.playMode : (state.matchMode || "azar");
+  if (pm === "tactica"){
+    if (state.mode === "normal"){ plan.tactic = normTactic(state.playTactic); plan.style = normStyle(state.playStyle); }
+    else { plan.tactic = normTactic(state.rivalTactic); plan.style = normStyle(state.rivalStyle); }
   }
+  plan.side = (Math.random() < 0.5) ? 0 : 2;   // lado fijo del juego (insistencia + fase de alternancia)
+  plan.seed = (Math.random() < 0.5) ? 0 : 1;
   state.gameplan = plan;
   state.planSeen = 0;                 // plan nuevo: el jugador vuelve a no saber nada
   state.srpCool = 0;
-}
-function styleOrigin(origins){
-  var sp = STYLE_PARAMS[state.point.style] || STYLE_PARAMS.todo_pista;
-  var r = Math.random(), row = 0, acc = sp.p[0];
-  if (r > acc){ acc += sp.p[1]; row = (r <= acc) ? 1 : 2; }
-  var lat;
-  if (Math.random() < sp.sideVar) lat = Math.floor(Math.random() * 3);
-  else lat = (state.point.tacSide != null ? state.point.tacSide : 1);
-  state.styleSpeed = styleSpeedFor(state.point.style);
-  return origins[row * 3 + lat];
-}
-function makeStyleShot(){
-  var g = computeCourtGeom();
-  var s = computeSites(g);
-  var o = styleOrigin(s.origins);
-  var d = s.dests[Math.floor(Math.random() * s.dests.length)];
-  return { g: g, o: o, d: d };
 }
 function spawnTennisBall(fromX, fromY, serveReturn){
   if (state.point && state.point.over) return;
@@ -2543,8 +2517,7 @@ function spawnTennisBall(fromX, fromY, serveReturn){
   }
   else if (fromX == null || fromY == null) shot = makeServeShot();
   else if (state.point && state.point.tactic) shot = makeTacticShot();
-  else if (state.point && state.point.style) shot = makeStyleShot();
-  else shot = pickTennisShot(0.5);   // Auto: profundidad neutra (no depende de mi golpe; la velocidad si)
+  else shot = pickTennisShot(0.5);   // Azar: profundidad neutra, destino aleatorio (sin patron que leer)
   var g = shot.g;
   var delay;
   if (fromX == null || fromY == null){
@@ -2761,8 +2734,7 @@ function askEmo(won, cb){
 }
 function afterPointFlow(){
   if (state.matchOver){
-    var mmF = state.matchMode || "azar";
-    if (state.mode !== "normal" && mmF !== "azar"){   // ultimo juego con lectura: obligatorio responder antes de resultados
+    if (activeMatchMode() === "tactica"){   // ultimo juego con lectura: responder el "?" antes de resultados
       state.pendingFinish = true;
       showContinueBtn(pointStakes());
       maybeShowRead();
@@ -3097,9 +3069,7 @@ function startPoint(){
   }
   if (!state.gameplan) setGamePlan();
   state.point.style  = state.gameplan.style;
-  state.point.tactic = state.gameplan.tactic;
-  state.point.tacSide = (Math.random() < 0.5) ? 0 : 2;
-  state.point.tacSeed = (Math.random() < 0.5) ? 0 : 1;
+  state.point.tactic = state.gameplan.tactic;   // lado/fase del patron: fijos por juego (state.gameplan.side/seed)
   state.tb = null;
   state.serveAnim = null;
   hideCenter();
@@ -3539,7 +3509,7 @@ function hideContinueBtn(){
   var sl = $("stakes-line"); if (sl) sl.style.display = "none";
   hideRead();
 }
-var READ_STYLE_OPTS = [["pasabolas","Pasabolas"],["atacante","Atacante"],["contragolpeador","Contragolpeador"],["todo_pista","Toda la pista"]];
+var READ_STYLE_OPTS = [["pasabolas","Pasabolas"],["indiferente","Indiferente"],["atacante","Atacante"]];
 function readLabel(opts, v){ for (var i=0;i<opts.length;i++){ if (opts[i][0] === v) return opts[i][1]; } return v; }
 function readSave(kind, correct){
   state.matchReadTotal = (state.matchReadTotal || 0) + 1;
@@ -3550,58 +3520,58 @@ function readSave(kind, correct){
     if (correct) localStorage.setItem(ko, String((parseInt(localStorage.getItem(ko) || "0", 10)) + 1));
   } catch(e){}
 }
+function activeMatchMode(){ return (state.mode === "normal") ? state.playMode : (state.matchMode || "azar"); }
 function maybeShowRead(){
   hideRead();
   state.readRequired = false;
   var sg = $("btn-seguir"); if (sg) sg.classList.remove("locked");
-  var ev = state.lastEvent, mm = state.matchMode || "azar";
+  var ev = state.lastEvent;
   var gameClosed = (ev === "game" || ev === "set" || ev === "match");
-  if (state.mode === "normal" || mm === "azar" || !gameClosed) return;
+  if (activeMatchMode() !== "tactica" || !gameClosed) return;   // solo con patron que leer
   state.readRequired = true;
   if (sg) sg.classList.add("locked");
   var b = $("btn-read"); if (b){ b.onclick = openRead; b.style.display = ""; }
 }
 function openRead(){
   var b = $("btn-read"); if (b) b.style.display = "none";
-  var mm = state.matchMode || "azar";
-  state.readDims = [];
-  if (mm === "estrategia" || mm === "total") state.readDims.push("style");
-  if (mm === "tactica" || mm === "total") state.readDims.push("tactic");
-  state.readIdx = 0; state.readAnswers = {};
-  renderReadStep();
-}
-function readTacticOpts(){
-  var right = state.lastGameTactic, pool = TACTIC_OPTS.slice(), chosen = [];
-  for (var i=0;i<pool.length;i++){ if (pool[i][0] === right){ chosen.push(pool[i]); pool.splice(i,1); break; } }
-  while (chosen.length < 4 && pool.length){ var k = Math.floor(Math.random()*pool.length); chosen.push(pool[k]); pool.splice(k,1); }
-  for (var j=chosen.length-1;j>0;j--){ var r=Math.floor(Math.random()*(j+1)), t=chosen[j]; chosen[j]=chosen[r]; chosen[r]=t; }
-  return chosen;
+  state.readAnswers = {};
+  renderReadForm();
 }
 var READ_END_MS = 1800;   // lo que se ve "Correcto / Era X" antes de pasar a resultados
-function renderReadStep(){
-  var panel = $("read-panel"); if (!panel) return;
-  var dim = state.readDims[state.readIdx];
-  var opts = (dim === "style") ? READ_STYLE_OPTS : readTacticOpts();
-  var q = (dim === "style") ? "&#191;Qu&#233; estilo?" : "&#191;Qu&#233; t&#225;ctica?";
-  var html = '<div class="read-q">' + q + '</div>';
-  for (var i=0;i<opts.length;i++){ html += '<button class="read-opt" onclick="pickRead(\'' + opts[i][0] + '\')">' + opts[i][1] + '</button>'; }
-  panel.innerHTML = html; panel.style.display = "";
+function readGroupHtml(dim, q, opts){
+  var h = '<div class="read-q">' + q + '</div><div class="read-grp">';
+  for (var i=0;i<opts.length;i++){
+    h += '<button class="read-opt" onclick="readPick(\'' + dim + '\',\'' + opts[i][0] + '\',this)">' + opts[i][1] + '</button>';
+  }
+  return h + '</div>';
 }
-function pickRead(value){
-  var dim = state.readDims[state.readIdx];
+function renderReadForm(){
+  var panel = $("read-panel"); if (!panel) return;
+  panel.innerHTML = readGroupHtml("tactic", "&#191;Qu&#233; t&#225;ctica?", TACTIC_OPTS)
+                  + readGroupHtml("style", "&#191;Qu&#233; estilo?", READ_STYLE_OPTS)
+                  + '<button class="read-confirm" id="read-confirm" onclick="readConfirm()" disabled>Confirmar</button>';
+  panel.style.display = "";
+}
+function readPick(dim, value, el){
   state.readAnswers[dim] = value;
-  var right = (dim === "style") ? state.lastGameStyle : state.lastGameTactic;
-  readSave(dim, value === right);
-  state.readIdx++;
-  if (state.readIdx < state.readDims.length) renderReadStep(); else showReadResult();
+  var bs = el.parentNode.querySelectorAll(".read-opt");
+  for (var i=0;i<bs.length;i++) bs[i].classList.toggle("sel", bs[i] === el);
+  var c = $("read-confirm");
+  if (c) c.disabled = !(state.readAnswers.tactic && state.readAnswers.style);
+}
+function readConfirm(){
+  readSave("tactic", state.readAnswers.tactic === state.lastGameTactic);
+  readSave("style",  state.readAnswers.style  === state.lastGameStyle);
+  showReadResult();
 }
 function showReadResult(){
   var panel = $("read-panel"); if (!panel) return;
-  var html = "", dims = state.readDims;
-  for (var i=0;i<dims.length;i++){
-    var dim = dims[i], opts = (dim === "style") ? READ_STYLE_OPTS : TACTIC_OPTS;
-    var chosen = state.readAnswers[dim], right = (dim === "style") ? state.lastGameStyle : state.lastGameTactic;
-    var ok = (chosen === right), lbl = (dim === "style") ? "Estilo" : "Tactica";
+  var rows = [["tactic", "Táctica", TACTIC_OPTS, state.lastGameTactic],
+             ["style", "Estilo", READ_STYLE_OPTS, state.lastGameStyle]];
+  var html = "";
+  for (var i=0;i<rows.length;i++){
+    var dim = rows[i][0], lbl = rows[i][1], opts = rows[i][2], right = rows[i][3];
+    var ok = (state.readAnswers[dim] === right);
     html += '<div class="read-res" style="color:' + (ok ? "#1e9e46" : "#cc2b2b") + ';">' + lbl + ": " + (ok ? "Correcto" : ("Era " + readLabel(opts, right))) + '</div>';
   }
   panel.innerHTML = html; panel.style.display = "";
@@ -4170,7 +4140,7 @@ function openRanking(){
   rankFilter.count = state.count ? state.count : 4;
   rankFilter.penaliza = state.penaliza;
   var mm = state.matchMode;
-  rankFilter.matchMode = (mm === "azar" || mm === "tactica" || mm === "estrategia" || mm === "total") ? mm : "tactica";
+  rankFilter.matchMode = (mm === "azar" || mm === "tactica") ? mm : "tactica";
   if (!rankFilter.order) rankFilter.order = "resultado";
   syncRankFilters();
   applyRankRows();
@@ -4201,29 +4171,26 @@ function loadRanking(){
 
 function goHome(){ stopLoop(); if (typeof stop1v1 === "function") stop1v1(); if (typeof stopInfinito === "function") stopInfinito(); if (typeof stopPeloteo === "function") stopPeloteo(); show("screen-home"); }
 function repeatTest(){ stopLoop(); if (lastPlayed && lastPlayed.mode === "1v1"){ stop1v1(); start1v1(); return; } if (lastPlayed){ state.mode = lastPlayed.mode; state.count = lastPlayed.count; } startGame(); }
-var TACTIC_OPTS = [["esquinas","Esquina a esquina"],["insistencia","Insistencia (mismo lado)"],["prof_corta","Profundo cruzado + corta"],["corto_largo","Cruzado corto + paralelo largo"],["media_volea","Media pista + volea"],["prof_dejada","Profunda y dejada"],["dejada_subir","Dejada y subir"]];
-var STYLE_OPTS = [["pasabolas","Pasabolas / Defensivo"],["atacante","Atacante / Golpeador"],["contragolpeador","Contragolpeador"],["todo_pista","Toda la pista"]];
+var TACTIC_OPTS = [["esquinas","Esquina a esquina"],["insistencia","Insistencia (un lado)"],["prof_corta","Profundo y corta"],["subir_red","Sube a la red"]];
+var STYLE_OPTS = [["pasabolas","Pasabolas"],["indiferente","Indiferente"],["atacante","Atacante"]];
+// migracion de valores viejos guardados (ranking / localStorage / selector) a las 4 tacticas y 3 estilos actuales
+var TACTIC_MIGRATE = { corto_largo:"esquinas", media_volea:"subir_red", dejada_subir:"subir_red", prof_dejada:"prof_corta" };
+var STYLE_MIGRATE  = { contragolpeador:"indiferente", todo_pista:"indiferente" };
+function normTactic(t){ return TACTIC_MIGRATE[t] || (hasOpt(TACTIC_OPTS, t) ? t : "esquinas"); }
+function normStyle(s){ return STYLE_MIGRATE[s] || (hasOpt(STYLE_OPTS, s) ? s : "indiferente"); }
 function hasOpt(opts, v){ for (var i=0;i<opts.length;i++){ if (opts[i][0] === v) return true; } return false; }
 function refreshRivalSub(){
   var sub = $("rival-sub"); if (!sub) return;
   var sub2 = $("rival-sub2");
-  var m = state.playMode;
-  var opts = (m === "tactica") ? TACTIC_OPTS : ((m === "estrategia" || m === "tacest") ? STYLE_OPTS : null);
-  if (opts){
-    if (m === "tactica"){ if (!hasOpt(opts, state.playTactic)) state.playTactic = opts[0][0]; }
-    else { if (!hasOpt(opts, state.playStyle)) state.playStyle = opts[0][0]; }
-    var cur = (m === "tactica") ? state.playTactic : state.playStyle, html = "";
-    for (var i=0;i<opts.length;i++){ html += '<option value="' + opts[i][0] + '"' + (opts[i][0] === cur ? ' selected' : '') + '>' + opts[i][1] + '</option>'; }
-    sub.innerHTML = html; sub.value = cur; sub.disabled = false;
-  } else { sub.innerHTML = ""; sub.disabled = true; }
-  if (sub2){
-    if (m === "tacest"){
-      var menu = STYLE_TACTICS[state.playStyle] || ALL_TACTICS;
-      if (menu.indexOf(state.playTactic) < 0) state.playTactic = menu[0];
-      var h2 = "";
-      for (var j=0;j<menu.length;j++){ h2 += '<option value="' + menu[j] + '"' + (menu[j] === state.playTactic ? ' selected' : '') + '>' + readLabel(TACTIC_OPTS, menu[j]) + '</option>'; }
-      sub2.innerHTML = h2; sub2.value = state.playTactic; sub2.disabled = false;
-    } else { sub2.innerHTML = ""; sub2.disabled = true; }
+  var on = (state.playMode === "tactica");   // "Tactica" -> patron + estilo ; "Azar" -> nada
+  if (on){
+    state.playTactic = normTactic(state.playTactic);
+    state.playStyle  = normStyle(state.playStyle);
+    fillSel(sub, TACTIC_OPTS, state.playTactic);
+    if (sub2) fillSel(sub2, STYLE_OPTS, state.playStyle);
+  } else {
+    sub.innerHTML = ""; sub.disabled = true;
+    if (sub2){ sub2.innerHTML = ""; sub2.disabled = true; }
   }
 }
 function applyRivalVisibility(){ var sec = $("rival-section"); if (sec) sec.style.display = (state.mode === "normal") ? "" : "none"; }
@@ -4331,9 +4298,9 @@ function init(){
   var rmode = $("rival-mode");
   if (rmode){ rmode.value = state.playMode; rmode.addEventListener("change", function(){ state.playMode = rmode.value; refreshRivalSub(); if (state.mode === "normal") setGamePlan(); }); }
   var rsub = $("rival-sub");
-  if (rsub){ rsub.addEventListener("change", function(){ if (state.playMode === "tactica") state.playTactic = rsub.value; else state.playStyle = rsub.value; if (state.playMode === "tacest") refreshRivalSub(); if (state.mode === "normal") setGamePlan(); }); }
+  if (rsub){ rsub.addEventListener("change", function(){ state.playTactic = rsub.value; if (state.mode === "normal") setGamePlan(); }); }
   var rsub2 = $("rival-sub2");
-  if (rsub2){ rsub2.addEventListener("change", function(){ state.playTactic = rsub2.value; if (state.mode === "normal") setGamePlan(); }); }
+  if (rsub2){ rsub2.addEventListener("change", function(){ state.playStyle = rsub2.value; if (state.mode === "normal") setGamePlan(); }); }
   refreshRivalSub();
 
   bindSelector("rk-mode", "data-mode", function(v){ rankFilter.mode = v; applyRankRows(); renderRanking(); });
