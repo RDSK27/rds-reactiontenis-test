@@ -436,7 +436,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v187</div>
+      <div class="app-ver">v188</div>
       </div>
     </div>
   </section>
@@ -872,7 +872,7 @@ function refresh1v1Player(n){
   var pl = p1v1[n];
   pl.tactic = normTactic(pl.tactic);
   pl.style  = normStyle(pl.style);
-  ddRender("p" + n + "-sub",  TACTIC_OPTS, pl.tactic, function(v){ p1v1[n].tactic = v; refresh1v1Player(n); }, false, n, "T\u00e1ctica");
+  ddRender("p" + n + "-sub",  tacticOpts(), pl.tactic, function(v){ p1v1[n].tactic = v; refresh1v1Player(n); }, false, n, "T\u00e1ctica");
   ddRender("p" + n + "-sub2", STYLE_OPTS,  pl.style,  function(v){ p1v1[n].style  = v; refresh1v1Player(n); }, false, n, "Estilo");
 }
 function bind1v1Player(n){ /* los desplegables propios se cablean en ddRender */ }
@@ -997,12 +997,20 @@ function pattern1v1(pl, rallyIgnored){
   var sty = normStyle(cfg.style);
   if (cfg._seed == null) cfg._seed = (Math.random() < 0.5) ? 0 : 1;
   var alt = (((rally + cfg._seed) % 2) === 0) ? 0 : 2;
-  var lat = 1, dep = 0;
+  var lat = 1, dep = 0, tspd = 1;
+  // --- TENIS ---
   if (tac === "esquinas"){ lat = alt; dep = 0; }
   else if (tac === "insistencia"){ if (cfg._side == null) cfg._side = (Math.random() < 0.5) ? 0 : 2; lat = cfg._side; dep = (rally % 3 === 0) ? 1 : 0; }
   else if (tac === "prof_corta"){ lat = alt; dep = (rally % 4 === 3) ? 2 : 0; }
   else if (tac === "subir_red"){ lat = alt; dep = (rally < 2) ? 0 : ((rally < 4) ? 1 : 2); }
+  // --- PADEL ---
+  else if (tac === "fondo_pared"){ lat = alt; dep = 0; }
+  else if (tac === "globo"){ lat = alt; dep = 0; tspd = 0.62; }
+  else if (tac === "bandeja"){ lat = alt; dep = 1; tspd = 0.9; }
+  else if (tac === "vibora"){ lat = alt; dep = (rally % 2 === 0) ? 0 : 1; tspd = 1.25; }
+  else if (tac === "chiquita"){ lat = (rally < 3) ? 1 : alt; dep = (rally < 3) ? 2 : 0; tspd = (rally < 3) ? 0.68 : 1.12; }
   else { lat = alt; dep = 0; }
+  cfg._tspd = tspd;                       // velocidad propia de la tactica (la usa speed1v1)
   // estilo (siempre presente): nudge de profundidad + dispersion lateral + dejadas extra
   var P = STYLE_PARAMS[sty];
   if (P){
@@ -1041,7 +1049,7 @@ function speed1v1(pl){
   var g = computeCourtGeom();
   var base = g.ch * TB_SPEED_FACTOR / 1000;
   var sp = STYLE_PARAMS[normStyle(cfg.style)];
-  var mul = sp ? sp.speed : 1;
+  var mul = (sp ? sp.speed : 1) * (cfg._tspd || 1);   // estilo x tactica (globo lento, vibora rapida...)
   return base * mul * SPEED_1V1 * rallyMul1v1();
 }
 function serve1v1(){
@@ -1057,6 +1065,7 @@ function serve1v1(){
   var ox = srvRight ? s.latX[2] : s.latX[0];
   var tx = srvRight ? s.latX[0] : s.latX[2];            // cruzado a la diagonal del restador
   g1.pNext = 2;                                        // el saque no cuenta como bola del plan
+  p1v1[pl]._tspd = 1;                                  // el saque va a velocidad neutra (no hereda la de la tactica)
   launch1v1(ox, oz[0], tx, tz[1], pl, opp);
 }
 function launch1v1(ox, oy, tx, ty, from, to){
@@ -1419,7 +1428,7 @@ function openTac1v1(n){
   if (ttl) ttl.textContent = "T\u00e1ctica y estilo";
   ddPending = { n: n, tactic: normTactic(p1v1[n].tactic), style: normStyle(p1v1[n].style) };
   box.innerHTML = '<div class="dd-cols">'
-    + ddColHtml("Patr\u00f3n", TACTIC_OPTS, ddPending.tactic, "tactic")
+    + ddColHtml("Patr\u00f3n", tacticOpts(), ddPending.tactic, "tactic")
     + ddColHtml("Estilo", STYLE_OPTS, ddPending.style, "style")
     + '</div><button class="dd-done" onclick="ddTacDone()">Listo</button>';
   var os = box.querySelectorAll(".dd-opt");
@@ -2266,12 +2275,13 @@ function computeSites(g){
 function drawBounces(){
   var arr = state.bounces;
   if (!arr || !arr.length) return;
+  var bcol = (state.disc === "padel") ? "#173e63" : "#ff9a3c";      // padel: azul mas oscuro que la pista
   ctx.save();
   for (var i = 0; i < arr.length; i++){
     var b = arr[i];
     ctx.globalAlpha = 0.95;
-    ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.6, 0, Math.PI * 2);   // punto, como el de punteria pero naranja
-    ctx.fillStyle = "#ff9a3c"; ctx.fill();
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.6, 0, Math.PI * 2);   // marca del bote
+    ctx.fillStyle = bcol; ctx.fill();
   }
   ctx.restore();
   ctx.globalAlpha = 1;
@@ -2537,7 +2547,8 @@ function tacticPhase(i, n){
   var last = (i >= n - 1);
   var alt = (((i + seed) % 2) === 0) ? 0 : 2;
   var key = state.point ? state.point.tactic : null;
-  var row = 0, lat = 1;
+  var row = 0, lat = 1, spd = 1;
+  // --- TENIS ---
   if (key === "esquinas"){ row = 0; lat = alt; }
   else if (key === "insistencia"){ lat = side; row = (i % 3 === 0) ? 1 : 0; }
   else if (key === "prof_corta"){ row = last ? 2 : 0; lat = alt; }
@@ -2545,6 +2556,15 @@ function tacticPhase(i, n){
     var ph = (n > 1) ? i / (n - 1) : 1;                        // 0..1 avance del punto
     row = (ph < 0.34) ? 0 : ((ph < 0.67) ? 1 : 2);             // fondo -> media -> corta
     lat = alt;
+  }
+  // --- PADEL ---
+  else if (key === "fondo_pared"){ row = last ? 1 : 0; lat = alt; }                 // profunda, sale de tu pared de fondo
+  else if (key === "globo"){ row = 0; lat = alt; spd = 0.62; }                      // lento y al fondo: te empuja al cristal
+  else if (key === "bandeja"){ row = 1; lat = alt; spd = 0.9; }                     // media y plana, el rival en la red te fija atras
+  else if (key === "vibora"){ row = (i % 2 === 0) ? 0 : 1; lat = alt; spd = 1.25; } // a la esquina + cristal lateral, rapida
+  else if (key === "chiquita"){
+    if (i < Math.ceil(n / 2)){ row = 2; lat = 1; spd = 0.68; }                      // cortas bajas para que levantes
+    else { row = 0; lat = alt; spd = 1.12; }                                        // ... y sube a rematar profundo
   }
   else { row = 0; lat = 1; }
   // estilo: nudge de profundidad del ORIGEN (pasabolas mas al fondo, atacante mas a la red)
@@ -2563,7 +2583,7 @@ function tacticPhase(i, n){
   }
   if (lat < 0) lat = 0; if (lat > 2) lat = 2;
   if (row < 0) row = 0; if (row > 2) row = 2;
-  return { row: row, lat: lat, srp: srp };
+  return { row: row, lat: lat, srp: srp, spd: spd };
 }
 function tacticOrigin(origins){
   var p = state.point;
@@ -2602,7 +2622,8 @@ function makeTacticShot(){
   var s = computeSites(g);
   var o = tacticOrigin(s.origins);
   var d = tacticDest(s);
-  state.styleSpeed = (state.point && state.point.style) ? styleSpeedFor(state.point.style) : 1;
+  var tspd = (state._tacPh && state._tacPh.spd) ? state._tacPh.spd : 1;   // velocidad propia de la tactica (globo lento, vibora rapida...)
+  state.styleSpeed = ((state.point && state.point.style) ? styleSpeedFor(state.point.style) : 1) * tspd;
   return { g: g, o: o, d: d, p: state.pNext };   // 0 sorpresa | 1 patron | 2 tanteo
 }
 
@@ -2628,10 +2649,10 @@ function gameKey(){
 }
 // --- Rival adaptativo: evolucion del plan por juego ---
 var RIVAL_STYLES = ["pasabolas", "indiferente", "atacante"];
-var ALL_TACTICS = ["esquinas", "insistencia", "prof_corta", "subir_red"];
 function pickDifferentTacticAny(cur){
-  if (ALL_TACTICS.length <= 1) return ALL_TACTICS[0];
-  var t; do { t = ALL_TACTICS[Math.floor(Math.random() * ALL_TACTICS.length)]; } while (t === cur);
+  var A = allTactics();
+  if (A.length <= 1) return A[0];
+  var t; do { t = A[Math.floor(Math.random() * A.length)]; } while (t === cur);
   return t;
 }
 function pickDifferentStyle(cur){
@@ -2643,7 +2664,8 @@ function initRival(){
   var mm = state.matchMode || "azar";
   state.loseStreak = 0; state.planRepeats = 0;
   if (mm === "tactica"){
-    state.rivalTactic = ALL_TACTICS[Math.floor(Math.random() * ALL_TACTICS.length)];
+    var A = allTactics();
+    state.rivalTactic = A[Math.floor(Math.random() * A.length)];
     state.rivalStyle  = RIVAL_STYLES[Math.floor(Math.random() * RIVAL_STYLES.length)];
   } else {
     state.rivalTactic = null; state.rivalStyle = null;
@@ -3809,7 +3831,7 @@ function readGroupHtml(dim, q, opts){
 function renderReadForm(){
   var panel = $("read-panel"); if (!panel) return;
   panel.innerHTML = '<div class="read-cols">'
-    + '<div class="read-col">' + readGroupHtml("tactic", "&#191;Qu&#233; t&#225;ctica?", TACTIC_OPTS) + '</div>'
+    + '<div class="read-col">' + readGroupHtml("tactic", "&#191;Qu&#233; t&#225;ctica?", tacticOpts()) + '</div>'
     + '<div class="read-col">' + readGroupHtml("style", "&#191;Qu&#233; estilo?", READ_STYLE_OPTS) + '</div>'
     + '</div>'
     + '<button class="read-confirm" id="read-confirm" onclick="readConfirm()" disabled>Confirmar</button>';
@@ -3829,7 +3851,7 @@ function readConfirm(){
 }
 function showReadResult(){
   var panel = $("read-panel"); if (!panel) return;
-  var rows = [["tactic", "Táctica", TACTIC_OPTS, state.lastGameTactic],
+  var rows = [["tactic", "Táctica", tacticOpts(), state.lastGameTactic],
              ["style", "Estilo", READ_STYLE_OPTS, state.lastGameStyle]];
   var html = "";
   for (var i=0;i<rows.length;i++){
@@ -4435,11 +4457,19 @@ function loadRanking(){
 function goHome(){ stopLoop(); if (typeof stop1v1 === "function") stop1v1(); if (typeof stopInfinito === "function") stopInfinito(); if (typeof stopPeloteo === "function") stopPeloteo(); show("screen-home"); }
 function repeatTest(){ stopLoop(); if (lastPlayed && lastPlayed.mode === "1v1"){ stop1v1(); start1v1(); return; } if (lastPlayed){ state.mode = lastPlayed.mode; state.count = lastPlayed.count; } startGame(); }
 var TACTIC_OPTS = [["esquinas","Esquina a esquina"],["insistencia","Insistencia (un lado)"],["prof_corta","Profundo y corta"],["subir_red","Sube a la red"]];
+var PADEL_TACTIC_OPTS = [["fondo_pared","Fondo y pared"],["globo","Globo"],["bandeja","Bandeja"],["vibora","Víbora al cristal"],["chiquita","Chiquita y sube"]];
 var STYLE_OPTS = [["pasabolas","Pasabolas"],["indiferente","Indiferente"],["atacante","Atacante"]];
-// migracion de valores viejos guardados (ranking / localStorage / selector) a las 4 tacticas y 3 estilos actuales
+// migracion de valores viejos guardados (ranking / localStorage / selector)
 var TACTIC_MIGRATE = { corto_largo:"esquinas", media_volea:"subir_red", dejada_subir:"subir_red", prof_dejada:"prof_corta" };
+var PADEL_TACTIC_MIGRATE = {};
 var STYLE_MIGRATE  = { contragolpeador:"indiferente", todo_pista:"indiferente" };
-function normTactic(t){ return TACTIC_MIGRATE[t] || (hasOpt(TACTIC_OPTS, t) ? t : "esquinas"); }
+function tacticOpts(){ return (state.disc === "padel") ? PADEL_TACTIC_OPTS : TACTIC_OPTS; }
+function allTactics(){ var o = tacticOpts(), a = []; for (var i=0;i<o.length;i++) a.push(o[i][0]); return a; }
+function normTactic(t){
+  var opts = tacticOpts();
+  if (hasOpt(opts, t)) return t;
+  return (state.disc === "padel") ? (PADEL_TACTIC_MIGRATE[t] || PADEL_TACTIC_OPTS[0][0]) : (TACTIC_MIGRATE[t] || "esquinas");
+}
 function normStyle(s){ return STYLE_MIGRATE[s] || (hasOpt(STYLE_OPTS, s) ? s : "indiferente"); }
 function hasOpt(opts, v){ for (var i=0;i<opts.length;i++){ if (opts[i][0] === v) return true; } return false; }
 function refreshRivalSub(){
@@ -4449,7 +4479,7 @@ function refreshRivalSub(){
   if (on){
     state.playTactic = normTactic(state.playTactic);
     state.playStyle  = normStyle(state.playStyle);
-    fillSel(sub, TACTIC_OPTS, state.playTactic);
+    fillSel(sub, tacticOpts(), state.playTactic);
     if (sub2) fillSel(sub2, STYLE_OPTS, state.playStyle);
   } else {
     sub.innerHTML = ""; sub.disabled = true;
@@ -4556,6 +4586,8 @@ function init(){
     var dr = $("disc-row");
     if (dr){ var os = dr.querySelectorAll(".opt"); for (var i=0;i<os.length;i++) os[i].classList.toggle("sel", os[i].getAttribute("data-disc") === state.disc); }
     var w = $("home-disc-word"); if (w) w.textContent = (state.disc === "padel") ? "Pádel" : "Tenis";
+    if (typeof normTactic === "function"){ state.playTactic = normTactic(state.playTactic); }   // el set de tacticas cambia con la disciplina
+    if (typeof refreshRivalSub === "function") refreshRivalSub();
     if ($("screen-game") && $("screen-game").classList.contains("active") && typeof drawCourt === "function") drawCourt();
   }
   function selectDisc(v){
