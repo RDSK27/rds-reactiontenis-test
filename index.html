@@ -274,6 +274,8 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 .emo-q.br{top:75%;left:75%;}
 .emo-dot{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--rds-red);border:2px solid #ffffff;display:none;pointer-events:none;}
 .emo-hint{font-size:10px;font-weight:700;letter-spacing:0.06em;color:#999999;text-transform:uppercase;}
+#emo-ok-btn{width:60%;transition:opacity 0.15s;}
+#emo-ok-btn.dis{opacity:0.35;pointer-events:none;}
 .emo-res-cv{width:min(74vw,290px);height:min(74vw,290px);display:block;}
 .emo1v1-ov{position:absolute;inset:0;z-index:14;display:none;flex-direction:column;background:rgba(0,0,0,0.55);}
 .emo1v1-half{flex:1 1 50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:0;}
@@ -458,7 +460,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v196</div>
+      <div class="app-ver">v197</div>
       </div>
     </div>
   </section>
@@ -563,7 +565,7 @@ table.rk tr.top3 td{background:#f7efe7;}
           <div class="emo-dot" id="emo-dot"></div>
         </div>
         <div class="emo-hint" id="emo-hint">Toca donde est&#225;s</div>
-        <button class="pause-btn" id="emo-ok-btn" style="display:none;">OK</button>
+        <button class="pause-btn dis" id="emo-ok-btn">OK</button>
       </div>
     </div>
     <div class="pause-overlay" id="mm-overlay" style="display:none;">
@@ -3053,7 +3055,7 @@ function askEmo(won, cb){
   var editable = (won == null);   // punto 0 (antes de empezar): puedo corregir el punto antes de confirmar
   if (ttl) ttl.textContent = first ? "\u00bfC\u00f3mo llegas?" : "\u00bfC\u00f3mo est\u00e1s?";
   if (dot) dot.style.display = "none";
-  if (ok) ok.style.display = "none";
+  if (ok){ ok.style.display = editable ? "block" : "none"; ok.classList.add("dis"); }
   if (hint) hint.textContent = "Toca donde est\u00e1s";
   ov.style.display = "flex";
   var done = false, locked = false, placed = null;
@@ -3085,7 +3087,7 @@ function askEmo(won, cb){
     if (!editable) locked = true;    // no editable: se fija nada mas tocar, como antes
     place(cx, cy);
     if (editable){
-      if (ok) ok.style.display = "block";
+      if (ok) ok.classList.remove("dis");
       if (hint) hint.textContent = "Toca de nuevo para corregirlo";
     } else {
       setTimeout(finish, EMO_SHOW_MS);
