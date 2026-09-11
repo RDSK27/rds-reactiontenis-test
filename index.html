@@ -463,7 +463,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v202</div>
+      <div class="app-ver">v203</div>
       </div>
     </div>
   </section>
@@ -2387,6 +2387,34 @@ function addBounce(x, y, r){
   if (state.bounces.length > 12) state.bounces.shift();
   soundBounce();                         // "pock" en el instante del bote
 }
+// ---------- Rival: figura en la pista, indica desde donde va a golpear ----------
+var RIVAL_IMGS = {};
+["tn", "pd"].forEach(function(disc){
+  ["espera", "derecha", "reves"].forEach(function(pose){
+    var im = new Image();
+    im.src = "assets/rival-" + disc + "-" + pose + ".png";
+    RIVAL_IMGS[disc + "_" + pose] = im;
+  });
+});
+var _rivalPoseTok = 0;
+function setRivalShot(shot){          // se llama al decidir cada bola: coloca al rival y elige su postura
+  var g = shot.g, o = shot.o;
+  var prefix = g.padel ? "pd" : "tn";
+  var pose = (o.x < g.cx) ? "derecha" : "reves";   // heuristica simple: de que lado alcanza la bola
+  state.rivalPose = prefix + "_" + pose;
+  state.rivalPos = { x: o.x, y: o.y };
+  var tok = ++_rivalPoseTok;
+  setTimeout(function(){ if (tok === _rivalPoseTok) state.rivalPose = prefix + "_espera"; }, 550);
+}
+function drawRival(){
+  var pos = state.rivalPos, pose = state.rivalPose;
+  if (!pos || !pose) return;
+  var img = RIVAL_IMGS[pose];
+  if (!img || !img.complete || !img.naturalHeight) return;
+  var g = computeCourtGeom();
+  var hT = g.ch * 0.24, wT = hT * (img.naturalWidth / img.naturalHeight);
+  ctx.drawImage(img, pos.x - wT / 2, pos.y - hT, wT, hT);
+}
 // El bote se marca cuando la bola cruza su destino SIN haber sido tocada (la que se va).
 // Asi el jugador ve que boto dentro y se fue por no llegar, no por fallo del rival.
 function bounceCheck(b, prevX, prevY){
@@ -2862,6 +2890,7 @@ function spawnTennisBall(fromX, fromY, serveReturn){
     state.rallyMul = clampRallyMul(state.rallyMul * 1.08);
   }
   state._earlyBlind = false;
+  setRivalShot(shot);   // coloca al rival y le pone la postura (derecha/reves) segun de donde golpea
   if (shot.cued){
     var rCue = Math.max(6, Math.round(g.base * TB_RADIUS_FACTOR));
     state.cue = { x0: fromX, y0: fromY, x1: shot.o.x, y1: shot.o.y, r: rCue, t0: performance.now(), dur: delay };
@@ -3718,6 +3747,7 @@ function loop(ts){
   state.lastTs = ts;
   ctx.clearRect(0, 0, CW, CH);
   drawCourt();
+  drawRival();
   drawBounces();
   if (state.hawk) drawHawk();
   if (state.cue) drawCue();
