@@ -256,6 +256,7 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 #rival-section select:disabled{background:#eeeeee !important;border-color:#cccccc !important;color:#bbbbbb !important;opacity:1;}
 .emo-overlay{position:absolute;inset:0;z-index:14;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);}
 .emo-box{background:#fff;border:3px solid var(--rds-red);border-radius:12px;padding:14px 14px 10px;display:flex;flex-direction:column;gap:8px;align-items:center;box-sizing:border-box;}
+.emo-score{font-weight:900;font-size:13px;letter-spacing:0.05em;color:#333333;text-align:center;margin-bottom:-4px;}
 .emo-ttl{font-weight:900;font-size:15px;letter-spacing:0.06em;text-transform:uppercase;color:var(--rds-red);text-align:center;}
 .emo-plot{position:relative;width:min(74vw,290px);height:min(74vw,290px);border:1px solid #d8d8d8;border-radius:8px;background:#fcfcfc;touch-action:none;cursor:crosshair;}
 .emo-plot .ax{position:absolute;background:#000000;}
@@ -284,7 +285,7 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 .emo1v1-ttl{font-weight:900;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;color:#ffffff;}
 .emo1v1-plot{width:min(52vw,205px);height:min(52vw,205px);}
 .emo-close{width:100%;padding:9px 6px;font-size:12.5px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;background:var(--rds-red);color:#fff;border:2px solid var(--rds-red);border-radius:6px;cursor:pointer;}
-.res-emo-btn{background:#fff;color:#222;border:2px solid #222 !important;}
+.res-emo-btn{flex:none !important;width:60% !important;background:#cfe000;color:#222;border:2px solid #222 !important;}
 .pause-title{font-weight:900;font-size:20px;letter-spacing:4px;color:var(--rds-red);margin-bottom:4px;}
 .pause-btn{width:100%;padding:11px 16px;border:none;border-radius:8px;background:var(--rds-red);color:#fff;font-weight:800;font-size:14px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
 .pause-btn.pause-alt{background:#555;}
@@ -460,7 +461,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v197</div>
+      <div class="app-ver">v198</div>
       </div>
     </div>
   </section>
@@ -550,6 +551,7 @@ table.rk tr.top3 td{background:#f7efe7;}
   <section id="screen-game" class="screen">
     <div class="emo-overlay" id="emo-overlay">
       <div class="emo-box">
+        <div class="emo-score" id="emo-score" style="display:none;"></div>
         <div class="emo-ttl" id="emo-ttl">&#191;C&#243;mo est&#225;s?</div>
         <div class="emo-plot" id="emo-plot">
           <div class="ax h"></div>
@@ -3046,14 +3048,25 @@ function endMatch(who){
 // ---------- Circunplejo: valencia (x) y activacion (y), un toque ----------
 // Se guarda el punto exacto (-1..1), no una casilla. No va a Firestore: vive en el partido.
 var EMO_SHOW_MS = 260;        // lo que se ve el punto marcado antes de continuar
+function emoScoreStr(){        // resultado actual, para mostrarlo encima del circumplejo durante el partido
+  if (state.mode === "normal" || !state.games) return "";
+  if (state.lastEvent === "game") return state.games.me + "-" + state.games.rival;
+  if (state.sets) return state.sets.me + "-" + state.sets.rival;
+  return "";
+}
 function askEmo(won, cb){
   var ov = $("emo-overlay"), plot = $("emo-plot"), dot = $("emo-dot"), ttl = $("emo-ttl"),
-      ok = $("emo-ok-btn"), hint = $("emo-hint");
+      ok = $("emo-ok-btn"), hint = $("emo-hint"), sco = $("emo-score");
   if (!ov || !plot){ cb(); return; }
   if (!state.emo) state.emo = [];
   var first = (state.emo.length === 0);
   var editable = (won == null);   // punto 0 (antes de empezar): puedo corregir el punto antes de confirmar
   if (ttl) ttl.textContent = first ? "\u00bfC\u00f3mo llegas?" : "\u00bfC\u00f3mo est\u00e1s?";
+  if (sco){
+    var scoreTxt = editable ? "" : emoScoreStr();
+    sco.textContent = scoreTxt;
+    sco.style.display = scoreTxt ? "block" : "none";
+  }
   if (dot) dot.style.display = "none";
   if (ok){ ok.style.display = editable ? "block" : "none"; ok.classList.add("dis"); }
   if (hint) hint.textContent = "Toca donde est\u00e1s";
