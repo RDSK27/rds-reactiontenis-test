@@ -463,7 +463,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v204</div>
+      <div class="app-ver">v205</div>
       </div>
     </div>
   </section>
@@ -2905,20 +2905,8 @@ function spawnTennisBall(fromX, fromY, serveReturn){
     if (!state.active || !state.tbMode) return;
     if (state.tbToken !== token) return;
     if (state.point && state.point.over) return;
-    if (shot.cued){
-      var spot = myBounceSpot(shot);      // el bote de tu golpe: un poco ANTES de donde el rival golpea (no en el mismo punto)
-      if (spot) addBounce(spot.x, spot.y, rCue);
-    }
     launchTennisBall(shot);
   }, delay);
-}
-var MY_BOUNCE_FRAC = 0.8;   // el bote se marca al 80% del camino red->rival: llega un poco antes de que el golpee
-function myBounceSpot(shot){
-  var g = shot.g, o = shot.o, z = courtZones(g);
-  var oTop = z.oRowY[0][0], oBot = z.oRowY[2][1];               // fondo del rival .. su linea cerca de la red
-  var depthFrac = 1 - Math.max(0, Math.min(1, (o.y - oTop) / (oBot - oTop)));   // 1 = fondo, 0 = pegado a la red
-  if (depthFrac < 0.25 && Math.random() > 0.15) return null;    // golpea muy cerca de la red: normalmente lo volea, sin que bote
-  return { x: o.x, y: g.cy - (g.cy - o.y) * MY_BOUNCE_FRAC };
 }
 function launchTennisBall(shot){
   var g = shot.g, o = shot.o, d = shot.d;
