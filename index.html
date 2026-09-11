@@ -71,6 +71,7 @@ header img{width:100%;height:auto;max-height:22vh;object-fit:cover;display:block
 .screen{flex:1 1 auto;display:none;flex-direction:column;min-height:0;}
 .screen.active{display:flex;}
 .pad{padding:10px 16px 10px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#results-pad{flex:1 1 auto;min-height:0;}   /* scroll interno: guardar/ranking quedan siempre pegados abajo con inicio/repetir */
 #screen-home{background-color:#c7cbcf;background-image:radial-gradient(70% 50% at 50% 38%,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#e4e7ea 0%,#c7cbcf 60%,#b0b4b8 100%);}
 #screen-home .pad{display:flex;flex-direction:column;flex:1;padding-top:8px;gap:8px;}
 #screen-home .block-label{margin:8px 0 6px;}
@@ -273,7 +274,8 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 .emo-q.tr{top:25%;left:75%;}
 .emo-q.bl{top:75%;left:25%;}
 .emo-q.br{top:75%;left:75%;}
-.emo-dot{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--rds-red);border:2px solid #ffffff;display:none;pointer-events:none;}
+.emo-dot{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--rds-red);border:2px solid #ffffff;display:none;pointer-events:none;z-index:2;}
+.emo-hist-dot{position:absolute;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;border-radius:50%;border:1.5px solid #ffffff;box-shadow:0 0 0 1px rgba(0,0,0,0.15);pointer-events:none;font-size:8px;font-weight:800;color:#ffffff;display:flex;align-items:center;justify-content:center;opacity:0.85;z-index:1;}
 .emo-hint{font-size:10px;font-weight:700;letter-spacing:0.06em;color:#999999;text-transform:uppercase;}
 #emo-ok-btn{width:60%;transition:opacity 0.15s;}
 #emo-ok-btn.dis{opacity:0.35;pointer-events:none;}
@@ -461,7 +463,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v199</div>
+      <div class="app-ver">v200</div>
       </div>
     </div>
   </section>
@@ -2749,18 +2751,22 @@ function pickDifferentTacticAny(cur){
   var t; do { t = A[Math.floor(Math.random() * A.length)]; } while (t === cur);
   return t;
 }
+function rivalStylePool(){       // en padel, "atacante" combinado con vibora es imposible de pillar: se descarta como plan del rival
+  return (state.disc === "padel") ? ["pasabolas", "indiferente"] : RIVAL_STYLES;
+}
 function pickDifferentStyle(cur){
-  if (RIVAL_STYLES.length <= 1) return RIVAL_STYLES[0];
-  var t; do { t = RIVAL_STYLES[Math.floor(Math.random() * RIVAL_STYLES.length)]; } while (t === cur);
+  var pool = rivalStylePool();
+  if (pool.length <= 1) return pool[0];
+  var t; do { t = pool[Math.floor(Math.random() * pool.length)]; } while (t === cur);
   return t;
 }
 function initRival(){
   var mm = state.matchMode || "azar";
   state.loseStreak = 0; state.planRepeats = 0;
   if (mm === "tactica"){
-    var A = allTactics();
+    var A = allTactics(), SP = rivalStylePool();
     state.rivalTactic = A[Math.floor(Math.random() * A.length)];
-    state.rivalStyle  = RIVAL_STYLES[Math.floor(Math.random() * RIVAL_STYLES.length)];
+    state.rivalStyle  = SP[Math.floor(Math.random() * SP.length)];
   } else {
     state.rivalTactic = null; state.rivalStyle = null;
   }
@@ -3066,24 +3072,42 @@ function emoScoreStr(){        // resultado actual, para mostrarlo encima del ci
   if (state.sets) return state.sets.me + "-" + state.sets.rival;
   return "";
 }
+function emoRenderHist(){      // puntos ya marcados este partido, como referencia visual (igual que en resultados)
+  var plot = $("emo-plot");
+  if (!plot) return;
+  var old = plot.querySelectorAll(".emo-hist-dot");
+  for (var i = 0; i < old.length; i++) old[i].remove();
+  var arr = state.emo || [];
+  for (var j = 0; j < arr.length; j++){
+    var e = arr[j];
+    var col = (e.w === 1) ? EMO_COL.win : ((e.w === 0) ? EMO_COL.lose : EMO_COL.none);
+    var d = document.createElement("div");
+    d.className = "emo-hist-dot";
+    d.style.left = (((e.v + 1) / 2) * 100) + "%";
+    d.style.top = (((1 - e.a) / 2) * 100) + "%";
+    d.style.background = col;
+    d.textContent = String(e.g);
+    plot.appendChild(d);
+  }
+}
 function askEmo(won, cb){
   var ov = $("emo-overlay"), plot = $("emo-plot"), dot = $("emo-dot"), ttl = $("emo-ttl"),
       ok = $("emo-ok-btn"), hint = $("emo-hint"), sco = $("emo-score");
   if (!ov || !plot){ cb(); return; }
   if (!state.emo) state.emo = [];
   var first = (state.emo.length === 0);
-  var editable = (won == null);   // punto 0 (antes de empezar): puedo corregir el punto antes de confirmar
   if (ttl) ttl.textContent = first ? "\u00bfC\u00f3mo llegas?" : "\u00bfC\u00f3mo est\u00e1s?";
   if (sco){
-    var scoreTxt = editable ? "" : emoScoreStr();
+    var scoreTxt = first ? "" : emoScoreStr();
     sco.textContent = scoreTxt;
     sco.style.display = scoreTxt ? "block" : "none";
   }
+  emoRenderHist();              // lo que ya llevas puesto en el partido, de fondo
   if (dot) dot.style.display = "none";
-  if (ok){ ok.style.display = editable ? "block" : "none"; ok.classList.add("dis"); }
+  if (ok){ ok.style.display = "block"; ok.classList.add("dis"); }   // el OK siempre disponible: tambien durante el partido, por si quieres corregir
   if (hint) hint.textContent = "Toca donde est\u00e1s";
   ov.style.display = "flex";
-  var done = false, locked = false, placed = null;
+  var done = false, placed = null;
   function place(cx, cy){
     var r = plot.getBoundingClientRect();
     var x = (cx - r.left) / r.width, y = (cy - r.top) / r.height;
@@ -3108,15 +3132,9 @@ function askEmo(won, cb){
     cb();
   }
   function pick(cx, cy){
-    if (locked) return;
-    if (!editable) locked = true;    // no editable: se fija nada mas tocar, como antes
     place(cx, cy);
-    if (editable){
-      if (ok) ok.classList.remove("dis");
-      if (hint) hint.textContent = "Toca de nuevo para corregirlo";
-    } else {
-      setTimeout(finish, EMO_SHOW_MS);
-    }
+    if (ok) ok.classList.remove("dis");
+    if (hint) hint.textContent = "Toca de nuevo para corregirlo";
   }
   function onT(e){ e.preventDefault(); var t0 = e.changedTouches[0]; pick(t0.clientX, t0.clientY); }
   function onM(e){ pick(e.clientX, e.clientY); }
@@ -4766,7 +4784,11 @@ var TACTIC_MIGRATE = { corto_largo:"esquinas", media_volea:"subir_red", dejada_s
 var PADEL_TACTIC_MIGRATE = {};
 var STYLE_MIGRATE  = { contragolpeador:"indiferente", todo_pista:"indiferente" };
 function tacticOpts(){ return (state.disc === "padel") ? PADEL_TACTIC_OPTS : TACTIC_OPTS; }
-function allTactics(){ var o = tacticOpts(), a = []; for (var i=0;i<o.length;i++) a.push(o[i][0]); return a; }
+function allTactics(){       // en padel, la vibora es demasiado rapida para reaccionar: se descarta como plan del rival
+  var o = tacticOpts(), a = [];
+  for (var i=0;i<o.length;i++){ if (state.disc === "padel" && o[i][0] === "vibora") continue; a.push(o[i][0]); }
+  return a;
+}
 function normTactic(t){
   var opts = tacticOpts();
   if (hasOpt(opts, t)) return t;
