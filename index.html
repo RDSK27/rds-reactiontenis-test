@@ -463,7 +463,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v206</div>
+      <div class="app-ver">v207</div>
       </div>
     </div>
   </section>
@@ -2351,17 +2351,21 @@ function courtZones(g){
 function siteIn(rowY, lat){ return { x: randIn(lat[0], lat[1]), y: randIn(rowY[0], rowY[1]) }; }
 function originSite(z, row, lat){ return siteIn(z.oRowY[row], z.latX[lat]); }
 function destSite(z, row, lat){ return siteIn(z.dRowY[row], z.latX[lat]); }
-// Escala de profundidad en el campo del rival: mas pequeno cuanto mas al fondo, tamano
-// normal (1) al llegar a la red. En mi campo no se toca (siempre 1). La usan tanto el
-// rival como la bola mientras esta en su campo, para que ambos guarden la misma proporcion.
-var DEPTH_SCALE_MIN = 0.55;
-function depthScale(y, g){
+// Profundidad en el campo del rival: 0 en su linea de fondo, 1 al llegar a la red.
+// En mi campo no se toca (siempre 1).
+function depthT(y, g){
   if (y >= g.cy) return 1;
   var z = courtZones(g);
   var oTop = z.oRowY[0][0], oBot = z.oRowY[2][1];
-  var t = Math.max(0, Math.min(1, (y - oTop) / (oBot - oTop)));   // 0 fondo, 1 cerca de la red
-  return DEPTH_SCALE_MIN + (1 - DEPTH_SCALE_MIN) * t;
+  return Math.max(0, Math.min(1, (y - oTop) / (oBot - oTop)));
 }
+// El rival apenas se encoge al fondo (solo una pista de profundidad, sin exagerar).
+// La bola sí se encoge mucho mas: si escala igual que el rival, al fondo parece un
+// balon de playa a su lado - tiene que quedar pequena y proporcionada junto a el.
+var RIVAL_DEPTH_MIN = 0.82;
+var BALL_DEPTH_MIN = 0.22;
+function rivalDepthScale(y, g){ var t = depthT(y, g); return RIVAL_DEPTH_MIN + (1 - RIVAL_DEPTH_MIN) * t; }
+function ballDepthScale(y, g){ var t = depthT(y, g); return BALL_DEPTH_MIN + (1 - BALL_DEPTH_MIN) * t; }
 // Evita angulos "cuasi imposibles": el desplazamiento lateral de un golpe queda
 // acotado por la profundidad que recorre (cerca de la red se permiten angulos mas
 // cerrados; desde el fondo, el angulo maximo razonable es menor).
@@ -2423,7 +2427,7 @@ function drawRival(){
   var img = RIVAL_IMGS[pose];
   if (!img || !img.complete || !img.naturalHeight) return;
   var g = computeCourtGeom();
-  var hT = g.ch * 0.12 * depthScale(pos.y, g), wT = hT * (img.naturalWidth / img.naturalHeight);
+  var hT = g.ch * 0.12 * rivalDepthScale(pos.y, g), wT = hT * (img.naturalWidth / img.naturalHeight);
   var minFootY = COURT_TOP + hT + 4;      // que la cabeza no quede tapada por la barra de arriba (marcador/cabecero)
   var footY = Math.max(pos.y, minFootY);
   ctx.drawImage(img, pos.x - wT / 2, footY - hT, wT, hT);
@@ -2959,7 +2963,7 @@ function drawTennisBall(tb){
     if (pf < 0) pf = 0; if (pf > 1) pf = 1;
     lift = tb.arc * Math.sin(Math.PI * pf);          // 0 en los extremos, maximo en el medio
   }
-  var rd = r * (1 + lift) * depthScale(y, computeCourtGeom());   // radio visual
+  var rd = r * (1 + lift) * ballDepthScale(y, computeCourtGeom());   // radio visual
   var tr = tb.trail, n = tr.length;
   for (var s = 0; s < n - 1; s++){
     var f = (s + 1) / n;
