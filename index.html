@@ -463,7 +463,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v200</div>
+      <div class="app-ver">v201</div>
       </div>
     </div>
   </section>
@@ -731,7 +731,7 @@ var AIM_LINE_FRAC = 0.45; // linea de mira: la bola debe cruzarla antes de tocar
 var SPEED_RAMP = 1.0;    // aumento de velocidad de la 1a a la ultima diana (1.0 = +100%)
 var LIMITE_ACCEL = 0.05; // modo limite: la velocidad sube un 5% por cada ensayo (infinito)
 var TRAIL_LEN = 14;      // numero de posiciones guardadas para la estela
-var TB_SPEED_FACTOR = 1.65;    // velocidad de la pelota (px/s respecto al alto de pista)
+var TB_SPEED_FACTOR = 1.55;    // velocidad de la pelota (px/s respecto al alto de pista) - un poco mas lenta: mas margen entre el bote y el golpe
 var TB_RADIUS_FACTOR = 0.042; // radio de la pelota respecto a la pista
 var TB_HIT_FACTOR = 2.2;      // radio de acierto = radio de la pelota * factor
 // --- velocidad adaptativa (segun resultado del punto) ---
@@ -746,7 +746,7 @@ var ORIGIN_MID_MIN    = 0.18;   // media pista con toque delantero
 var ORIGIN_MID_MAX    = 0.33;   // media pista con toque profundo
 var SHOT_SPEED_STEP = 0.12;     // +/- max de velocidad por bola segun profundidad del toque
 var RALLY_MUL_MIN = 0.70, RALLY_MUL_MAX = 1.45;  // topes del multiplicador de peloteo
-var CUE_SPEED_BONUS = 1.20;     // +20% de velocidad por haber pre-aviso (estela) del origen
+var CUE_SPEED_BONUS = 1.10;     // +10% de velocidad por haber pre-aviso (estela) del origen (antes +20%: el bote quedaba muy pegado al golpe)
 var BEST_RT = 250;       // ms -> velocidad 1.0
 var WORST_RT = 1500;     // ms -> velocidad 0.0
 var MACHINEGUN_TAPS = 3;   // toques seguidos para detectar metralleta
@@ -2874,6 +2874,7 @@ function spawnTennisBall(fromX, fromY, serveReturn){
     if (!state.active || !state.tbMode) return;
     if (state.tbToken !== token) return;
     if (state.point && state.point.over) return;
+    if (shot.cued) addBounce(shot.o.x, shot.o.y, rCue);   // marca donde ha botado tu golpe en el campo rival
     launchTennisBall(shot);
   }, delay);
 }
