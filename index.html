@@ -463,7 +463,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v212</div>
+      <div class="app-ver">v213</div>
       </div>
     </div>
   </section>
@@ -2452,6 +2452,10 @@ function setRivalShot(shot){          // se llama al decidir cada bola: coloca a
   var tok = ++_rivalPoseTok;
   setTimeout(function(){ if (tok === _rivalPoseTok) state.rivalPose = prefix + "_espera" + (g.padel ? padelSuffix(isLeft) : ""); }, 550);
 }
+function setRivalWait(g, o){          // el rival espera quieto (sin golpear) en la posicion o
+  setRivalShot({ g: g, o: o });
+  state.rivalPose = (g.padel ? "pd" : "tn") + "_espera" + (g.padel ? padelSuffix(o.x < g.cx) : "");
+}
 function drawRivalFigure(pos, pose){
   if (!pos || !pose) return;
   var img = RIVAL_IMGS[pose];
@@ -2694,6 +2698,10 @@ function startServeOut(){
   var boxY = g.cy - (g.cy - g.ySrvT) * (0.45 + Math.random() * 0.4);   // dentro del cuadro del rival
   var boxX = right ? (g.cx - halfW * (0.20 + Math.random() * 0.5))     // cruzado
                    : (g.cx + halfW * (0.20 + Math.random() * 0.5));
+  var zW = courtZones(g);                                  // el rival espera en su fondo, no dentro del cuadro de saque
+  state.serveWaitPos = { x: Math.max(zW.xLo, Math.min(zW.xHi, boxX)),
+                         y: zW.oRowY[0][0] + (zW.oRowY[0][1] - zW.oRowY[0][0]) * 0.3 };
+  setRivalWait(g, state.serveWaitPos);
   var dx = boxX - ox, dy = boxY - oy;
   var len = Math.hypot(dx, dy) || 1;
   var V = g.ch * (state.speedFactor || TB_SPEED_FACTOR) * 1.15;        // saque: algo rapido
@@ -2896,10 +2904,11 @@ function spawnTennisBall(fromX, fromY, serveReturn){
   state.styleSpeed = 1;
   var shot;
   if (serveReturn){
-    // el rival devuelve MI saque desde el punto exacto donde ha botado (fromX,fromY):
-    // sin salto de trayectoria, y a partir de aqui el peloteo sigue normal.
+    // el rival devuelve MI saque desde su fondo (donde esperaba), nunca desde dentro del
+    // cuadro de saque (parecia una volea); la estela (cue) une el bote con su golpe.
     var zRet = courtZones(gGeom);
-    var oRet = { x: fromX, y: fromY };
+    var oRet = state.serveWaitPos ? { x: state.serveWaitPos.x, y: state.serveWaitPos.y } : { x: fromX, y: fromY };
+    state.serveWaitPos = null;
     var dRet = { x: randIn(zRet.xLo, zRet.xHi), y: randIn(zRet.dRowY[2][0], zRet.dRowY[0][1]) };
     shot = { g: gGeom, o: oRet, d: clampAngle(oRet, dRet, gGeom) };
   }
@@ -2942,7 +2951,7 @@ function spawnTennisBall(fromX, fromY, serveReturn){
   }
   state._earlyBlind = false;
   setRivalShot(shot);   // coloca al rival y le pone la postura (derecha/reves) segun de donde golpea
-  if (shot.cued){
+  if (shot.cued || serveReturn){
     var rCue = Math.max(6, Math.round(g.base * TB_RADIUS_FACTOR));
     state.cue = { x0: fromX, y0: fromY, x1: shot.o.x, y1: shot.o.y, r: rCue, t0: performance.now(), dur: delay };
   } else {
