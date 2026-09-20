@@ -463,7 +463,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v214</div>
+      <div class="app-ver">v215</div>
       </div>
     </div>
   </section>
@@ -2408,12 +2408,25 @@ function addBounce(x, y, r){
 }
 // ---------- Rival: figura en la pista, indica desde donde va a golpear ----------
 var RIVAL_IMGS = {};
-["tn", "pd"].forEach(function(disc){
-  ["espera", "derecha", "reves"].forEach(function(pose){
-    var im = new Image();
-    im.src = "assets/rival-" + disc + "-" + pose + ".png";
-    RIVAL_IMGS[disc + "_" + pose] = im;
-  });
+["espera", "derecha", "reves"].forEach(function(pose){       // padel: figura vieja, se ajusta a la altura
+  var im = new Image();
+  im.src = "assets/rival-pd-" + pose + ".png";
+  RIVAL_IMGS["pd_" + pose] = im;
+});
+/* Tenis: tenista arcade con poses de impacto. Cada sprite = [ancho, alto, x del apoyo de los
+   pies, y del apoyo] en px del PNG; todos a la MISMA escala (TN_REF_H = alto del PNG que
+   equivale a la figura de pie de la pista), asi el tenista no cambia de tamano entre poses.
+   d_* = derechas (raqueta a la izquierda de la pantalla), r_* = reveses (a la derecha). */
+var TN_REF_H = 200;
+var TN_META = {
+  espera:[148,167,75,167], saque:[78,231,21,231],
+  d_plano:[197,155,113,155], d_carrera:[202,128,46,128], d_salto:[159,181,77,181], d_volea:[132,147,62,147],
+  r_plano:[173,165,73,165], r_carrera:[195,143,125,143], r_carrera1m:[177,165,107,165], r_volea:[160,149,70,149]
+};
+Object.keys(TN_META).forEach(function(k){
+  var im = new Image();
+  im.src = "assets/tn-" + k + ".png";
+  RIVAL_IMGS["t2_" + k] = im;
 });
 ["espera", "derecha", "reves"].forEach(function(pose){     // padel: variante rubia, para distinguir a los dos companeros
   var im = new Image();
@@ -2430,7 +2443,19 @@ function padelSuffix(isLeft){
 var _rivalPoseTok = 0;
 function rivalBaseY(z){ return z.oRowY[0][0]; }      // linea de fondo del rival: desde aqui saca y aqui espera
 function rivalPoseName(g, kind, x){
-  return (g.padel ? "pd" : "tn") + "_" + kind + (g.padel ? padelSuffix(x < g.cx) : "");
+  if (!g.padel) return "t2_" + kind;                  // tenis: solo se pide "espera" (los golpes van por tnPickHitPose)
+  return "pd_" + kind + padelSuffix(x < g.cx);
+}
+/* Pose de golpe del tenista segun DE QUE LADO le llega la bola y a que PROFUNDIDAD golpea:
+   el rival mira hacia mi, asi que su derecha es la IZQUIERDA de la pantalla. Fondo = carrera
+   estirada, media pista = golpe plano / salto, cerca de la red = volea. */
+function tnPickHitPose(g, shot){
+  if (shot.serve) return "t2_saque";
+  var fore = shot.o.x < g.cx;
+  var t = depthT(shot.o.y, g);                        // 0 = su linea de fondo, 1 = la red
+  var pool = fore ? (t < 0.3 ? ["d_carrera", "d_plano"] : (t < 0.7 ? ["d_plano", "d_salto"] : ["d_volea"]))
+                  : (t < 0.3 ? ["r_carrera", "r_carrera1m"] : (t < 0.7 ? ["r_plano", "r_carrera1m"] : ["r_volea"]));
+  return "t2_" + pool[Math.floor(Math.random() * pool.length)];
 }
 function rivalCurPos(){                               // posicion actual del rival (interpolada si esta corriendo)
   var m = state.rivalMove;
@@ -2461,7 +2486,7 @@ function setRivalShot(shot, dur){
   var prefix = g.padel ? "pd" : "tn";
   var isLeft = o.x < g.cx;
   state.rivalPrefix = prefix;
-  state.rivalHitPose = rivalPoseName(g, (o.x > g.cx) ? "derecha" : "reves", o.x);   // la bola le llega a su derecha (pantalla) -> derecha; a su izquierda -> reves
+  state.rivalHitPose = g.padel ? rivalPoseName(g, (o.x > g.cx) ? "derecha" : "reves", o.x) : tnPickHitPose(g, shot);
   state.rivalIdlePose = rivalPoseName(g, "espera", o.x);
   state.rivalPose = state.rivalIdlePose;
   ++_rivalPoseTok;                                    // anula un cambio de postura pendiente de la bola anterior
@@ -2486,9 +2511,11 @@ function rivalStrike(shot){
   if (state.rivalHitPose) state.rivalPose = state.rivalHitPose;
   var tok = ++_rivalPoseTok;
   setTimeout(function(){ if (tok === _rivalPoseTok && state.rivalIdlePose) state.rivalPose = state.rivalIdlePose; }, 550);
-  if (!g.padel){
-    var z = courtZones(g);
-    rivalMoveTo(g.cx + (shot.o.x - g.cx) * 0.3, rivalBaseY(z), 550);
+  if (!g.padel){                                      // acaba el golpe (200 ms) y vuelve a esperar
+    setTimeout(function(){
+      if (tok !== _rivalPoseTok) return;
+      rivalMoveTo(g.cx + (shot.o.x - g.cx) * 0.3, rivalBaseY(courtZones(g)), 500);
+    }, 200);
   }
 }
 function drawRivalFigure(pos, pose){
@@ -2496,6 +2523,15 @@ function drawRivalFigure(pos, pose){
   var img = RIVAL_IMGS[pose];
   if (!img || !img.complete || !img.naturalHeight) return;
   var g = computeCourtGeom();
+  if (pose.indexOf("t2_") === 0){                     // tenista nuevo: escala comun y apoyo en los pies
+    var m = TN_META[pose.slice(3)];
+    var k = g.ch * 0.12 * rivalDepthScale(pos.y, g) / TN_REF_H;
+    var footY2 = Math.max(pos.y, COURT_TOP + m[3] * k + 4);   // la cabeza no queda tapada por el cabecero
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, pos.x - m[2] * k, footY2 - m[3] * k, img.naturalWidth * k, img.naturalHeight * k);
+    return;
+  }
   var hT = g.ch * 0.12 * rivalDepthScale(pos.y, g), wT = hT * (img.naturalWidth / img.naturalHeight);
   var minFootY = COURT_TOP + hT + 4;      // que la cabeza no quede tapada por la barra de arriba (marcador/cabecero)
   var footY = Math.max(pos.y, minFootY);
