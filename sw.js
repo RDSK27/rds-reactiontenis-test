@@ -2,7 +2,7 @@
 // Documento HTML / navegacion: network-first (siempre la ultima version con conexion).
 // Resto de assets same-origin + SDK de Firebase (gstatic): cache-first.
 // Las llamadas de datos a Firestore NO se cachean (persistencia offline de Firestore).
-var CACHE = "rtenis-v216";
+var CACHE = "rtenis-v217";
 var ASSETS = ["./", "./index.html", "./manifest.json", "./assets/logo.png", "./assets/logo-padel.png", "./assets/ball.webp", "./assets/banner.webp", "./assets/icon-192.png", "./assets/icon-512.png",
   "./assets/tn-espera.png", "./assets/tn-saque.png", "./assets/tn-d_plano.png", "./assets/tn-d_carrera.png", "./assets/tn-d_salto.png", "./assets/tn-d_volea.png",
   "./assets/tn-r_plano.png", "./assets/tn-r_carrera.png", "./assets/tn-r_carrera1m.png", "./assets/tn-r_volea.png",
