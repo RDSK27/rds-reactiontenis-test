@@ -2,12 +2,13 @@
 // Documento HTML / navegacion: network-first (siempre la ultima version con conexion).
 // Resto de assets same-origin + SDK de Firebase (gstatic): cache-first.
 // Las llamadas de datos a Firestore NO se cachean (persistencia offline de Firestore).
-var CACHE = "rtenis-v215";
+var CACHE = "rtenis-v216";
 var ASSETS = ["./", "./index.html", "./manifest.json", "./assets/logo.png", "./assets/logo-padel.png", "./assets/ball.webp", "./assets/banner.webp", "./assets/icon-192.png", "./assets/icon-512.png",
   "./assets/tn-espera.png", "./assets/tn-saque.png", "./assets/tn-d_plano.png", "./assets/tn-d_carrera.png", "./assets/tn-d_salto.png", "./assets/tn-d_volea.png",
   "./assets/tn-r_plano.png", "./assets/tn-r_carrera.png", "./assets/tn-r_carrera1m.png", "./assets/tn-r_volea.png",
-  "./assets/rival-pd-espera.png", "./assets/rival-pd-derecha.png", "./assets/rival-pd-reves.png",
-  "./assets/rival-pd-espera-rubio.png", "./assets/rival-pd-derecha-rubio.png", "./assets/rival-pd-reves-rubio.png"];
+  "./assets/pd-espera-m.png", "./assets/pd-espera-r.png", "./assets/pd-saque-m.png", "./assets/pd-saque-r.png",
+  "./assets/pd-d_plano-m.png", "./assets/pd-d_plano-r.png", "./assets/pd-d_carrera-m.png", "./assets/pd-d_carrera-r.png",
+  "./assets/pd-r_plano-m.png", "./assets/pd-r_plano-r.png", "./assets/pd-d_volea-m.png", "./assets/pd-d_volea-r.png"];
 
 self.addEventListener("install", function(e){
   self.skipWaiting();
