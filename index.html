@@ -463,7 +463,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v217</div>
+      <div class="app-ver">v220</div>
       </div>
     </div>
   </section>
@@ -860,6 +860,7 @@ function resize1v1(){
 }
 function start1v1(){
   lastPlayed = { mode: "1v1", count: 0 };   // para que "Repetir" vuelva al 1v1
+  state.bounces = [];                        // pista limpia: sin botes del partido anterior
   show("screen-1v1");
   setTimeout(function(){ setup1v1(); show1v1Setup(); }, 30);   // layout -> pista -> configuracion
 }
@@ -2120,7 +2121,16 @@ function cronoMode(){ return state.mode !== "limite"; }
 function fmtClock(ms){ if (ms < 0) ms = 0; var tc = Math.floor(ms / 10); var cc = tc % 100; var ts = Math.floor(tc / 100); var sc = ts % 60; var mn = Math.floor(ts / 60); return mn + ":" + (sc < 10 ? "0" + sc : sc) + "." + (cc < 10 ? "0" + cc : cc); }
 function minDim(){ return Math.min(CW, CH); }
 
+// Cierra los paneles de la pantalla de juego que hayan quedado abiertos al salir con INICIO
+// (ELIGE RIVAL / PAUSA, MODO DE JUEGO, FIN). Si no, al empezar otro modo se ve encima el panel del anterior
+// (p. ej. ELIGE RIVAL de Juego tapando MODO DE JUEGO de Set).
+function hideGameOverlays(){
+  ["pause-overlay", "mm-overlay", "end-overlay"].forEach(function(id){ var el = $(id); if (el) el.style.display = "none"; });
+  state.rivalSetup = false;
+}
+
 function startGame(){
+  hideGameOverlays();
   lastPlayed = { mode: state.mode, count: state.count };
   if (state.mode === "infinito"){ startInfinito(); return; }
   if (state.mode === "peloteo"){ startPeloteo(); return; }
@@ -2150,6 +2160,14 @@ function startGame(){
     state.rafId = requestAnimationFrame(loop);
   }
   hideCenter();          // limpia un posible mensaje PUNTO/FALLO del partido anterior
+  // Pista limpia al empezar: sin rival ni botes ni marcas del partido anterior. El loop ya esta
+  // dibujando mientras se elige rival/modo y durante la cuenta atras, asi que sin esto se veria
+  // el ultimo fotograma de la partida anterior (el rival aparece de nuevo al empezar el punto).
+  state.bounces = [];
+  state.rivalPos = null; state.rivalPos2 = null; state.rivalMove = null;
+  state.rivalPose = null; state.rivalPose2 = null; state.rivalIdlePose = null; state.rivalHitPose = null;
+  ++_rivalPoseTok;                                   // anula un cambio de postura pendiente del partido anterior
+  state.hawk = null; state.cue = null; state.serveAnim = null;
   if (state.mode === "normal") showRivalSetup();   // JUEGO: elegir rival ANTES de la cuenta atras
   else showMatchModePanel();                       // SET/PARTIDO: elegir modo ANTES de la cuenta atras
 }
@@ -4071,6 +4089,10 @@ function handleTap(clientX, clientY){
     var rectT = canvas.getBoundingClientRect();
     var pxT = clientX - rectT.left, pyT = clientY - rectT.top;
     if (state.tb){
+      // la bola del rival (saque, camino hacia el o recien golpeada) siempre viaja hacia mi;
+      // mientras no haya cruzado la red a mi campo, el toque no cuenta (ni acierto ni fallo):
+      // no se puede interceptar lo que todavia esta en campo rival.
+      if (state.tb.y < computeCourtGeom().cy) return;
       var ddx = pxT - state.tb.x, ddy = pyT - state.tb.y;
       var dist = Math.hypot(ddx, ddy);
       var hitR = state.tb.r * TB_HIT_FACTOR;
@@ -4992,7 +5014,7 @@ function loadRanking(){
   }
 }
 
-function goHome(){ stopLoop(); if (typeof stop1v1 === "function") stop1v1(); if (typeof stopInfinito === "function") stopInfinito(); if (typeof stopPeloteo === "function") stopPeloteo(); show("screen-home"); }
+function goHome(){ stopLoop(); hideGameOverlays(); if (typeof stop1v1 === "function") stop1v1(); if (typeof stopInfinito === "function") stopInfinito(); if (typeof stopPeloteo === "function") stopPeloteo(); show("screen-home"); }
 function repeatTest(){ stopLoop(); if (lastPlayed && lastPlayed.mode === "1v1"){ stop1v1(); start1v1(); return; } if (lastPlayed){ state.mode = lastPlayed.mode; state.count = lastPlayed.count; } startGame(); }
 var TACTIC_OPTS = [["esquinas","Esquina a esquina"],["insistencia","Insistencia (un lado)"],["prof_corta","Profundo y corta"],["subir_red","Sube a la red"]];
 var PADEL_TACTIC_OPTS = [["fondo_pared","Fondo y pared"],["globo","Globo"],["bandeja","Bandeja"],["vibora","Víbora al cristal"],["chiquita","Chiquita y sube"]];
