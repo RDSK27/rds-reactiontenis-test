@@ -185,6 +185,7 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 #setup-1v1 select:disabled{background:#eeeeee !important;border-color:#cccccc !important;color:#bbbbbb !important;opacity:1;}
 #btn-goranking{width:70px;height:70px;padding:0;margin:0;border-radius:50%;}
 .app-ver{order:5;margin-top:auto;text-align:center;font-size:0.72rem;font-weight:700;letter-spacing:1.2px;color:#9a9a9a;font-family:Arial,sans-serif;padding-top:6px;}
+.pending-sync{order:6;display:none;text-align:center;font-size:0.68rem;letter-spacing:0.03em;color:#e0a030;font-family:Arial,sans-serif;padding-top:4px;}
 .home-bottom{margin-top:auto;align-self:center;width:92%;box-sizing:border-box;margin-bottom:10px;border:3px solid var(--rds-red);border-radius:10px;background-color:#000000;padding:20px 12px 12px;display:flex;flex-direction:column;align-items:center;min-height:250px;}
 .home-bottom .tag-line{color:#cccccc;order:4;}
 .mode-desc{
@@ -463,7 +464,8 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v225</div>
+      <div class="app-ver">v226</div>
+      <div id="pending-sync" class="pending-sync"></div>
       </div>
     </div>
   </section>
@@ -737,11 +739,56 @@ try {
   db = getFirestore(app);
 } catch (e) { console.warn("Firebase init error", e); }
 
+/* Cola de reintento offline (2026-09-28, propia, en localStorage):
+   ya no hay persistencia de Firestore (ver nota arriba), asi que si
+   el guardado falla o no hay red, la marca se guarda aqui y se
+   reintenta sola al recuperar conexion (evento 'online' + al volver
+   a primer plano). No usa IndexedDB ni el motor offline de Firestore
+   -> no puede reproducir el candado entre pestanas del Paso H. */
+var PENDING_KEY = "rtenis_pending";
+function loadPending(){ try{ return JSON.parse(localStorage.getItem(PENDING_KEY)||"[]"); }catch(e){ return []; } }
+function savePending(arr){ try{ localStorage.setItem(PENDING_KEY, JSON.stringify(arr)); }catch(e){} }
+function updatePendingUI(){
+  var n = loadPending().length, el = document.getElementById("pending-sync");
+  if (!el) return;
+  if (n > 0){ el.style.display = "block"; el.textContent = "⚠ " + n + (n === 1 ? " marca pendiente de subir" : " marcas pendientes de subir"); }
+  else { el.style.display = "none"; el.textContent = ""; }
+}
+function withTimeout(p, ms){
+  return new Promise(function(resolve, reject){
+    var done = false, t = setTimeout(function(){ if (!done){ done = true; reject(new Error("timeout")); } }, ms);
+    p.then(function(v){ if (!done){ done = true; clearTimeout(t); resolve(v); } }, function(e){ if (!done){ done = true; clearTimeout(t); reject(e); } });
+  });
+}
+var flushing = false;
+async function flushPending(){
+  if (!db || flushing || !navigator.onLine) return;
+  var pend = loadPending();
+  if (!pend.length) return;
+  flushing = true;
+  var rest = [];
+  for (var i = 0; i < pend.length; i++){
+    try { await withTimeout(addDoc(collection(db, "scores_reactiontenis"), pend[i]), 8000); }
+    catch (e){ rest.push(pend[i]); }
+  }
+  savePending(rest);
+  updatePendingUI();
+  flushing = false;
+}
+window.addEventListener("online", flushPending);
+document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible"){ flushPending(); } });
+updatePendingUI();
+flushPending();
+
 window.RDS_DB = {
   ok: !!db,
   add: function(rec){
     if (!db) return Promise.reject(new Error("no-db"));
-    return addDoc(collection(db, "scores_reactiontenis"), rec);
+    if (!navigator.onLine){ var p1 = loadPending(); p1.push(rec); savePending(p1); updatePendingUI(); return Promise.resolve({ queued: true }); }
+    return withTimeout(addDoc(collection(db, "scores_reactiontenis"), rec), 8000).catch(function(e){
+      var p2 = loadPending(); p2.push(rec); savePending(p2); updatePendingUI();
+      return { queued: true };
+    });
   },
   fetchAll: function(){
     if (!db) return Promise.reject(new Error("no-db"));
