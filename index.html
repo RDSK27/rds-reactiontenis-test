@@ -477,7 +477,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v228</div>
+      <div class="app-ver">v229</div>
       <div id="pending-sync" class="pending-sync"></div>
       </div>
     </div>
@@ -827,21 +827,28 @@ async function checkGate(){
   gateShow("");
 }
 var gateBtn = document.getElementById("accessGateBtn");
-if (gateBtn){
-  gateBtn.addEventListener("click", async function(){
-    var input = document.getElementById("accessGateInput");
-    var val = (input && input.value || "").trim();
-    var errEl = document.getElementById("accessGateErr");
-    if (!val) return;
-    if (errEl) errEl.textContent = "";
-    var live = await fetchGateKey();
-    if (live === undefined){ if (errEl) errEl.textContent = "Sin conexión, inténtalo de nuevo."; return; }
-    if (live && val === live){
-      try{ localStorage.setItem(GATE_LS, val); }catch(e){}
-      gateHide();
-    } else {
-      if (errEl) errEl.textContent = "Clave incorrecta.";
-    }
+var gateInput = document.getElementById("accessGateInput");
+async function attemptGateUnlock(){
+  if (!gateInput) return;
+  var val = (gateInput.value || "").trim();
+  var errEl = document.getElementById("accessGateErr");
+  if (!val) return;
+  if (errEl) errEl.textContent = "";
+  if (gateBtn){ gateBtn.disabled = true; gateBtn.textContent = "Comprobando…"; }
+  var live = await fetchGateKey();
+  if (gateBtn){ gateBtn.disabled = false; gateBtn.textContent = "Entrar"; }
+  if (live === undefined){ if (errEl) errEl.textContent = "Sin conexión, inténtalo de nuevo."; return; }
+  if (live && val === live){
+    try{ localStorage.setItem(GATE_LS, val); }catch(e){}
+    gateHide();
+  } else {
+    if (errEl) errEl.textContent = "Clave incorrecta.";
+  }
+}
+if (gateBtn){ gateBtn.addEventListener("click", attemptGateUnlock); }
+if (gateInput){
+  gateInput.addEventListener("keydown", function(e){
+    if (e.key === "Enter"){ e.preventDefault(); attemptGateUnlock(); }
   });
 }
 checkGate();
