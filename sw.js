@@ -2,7 +2,7 @@
 // Documento HTML / navegacion: network-first (siempre la ultima version con conexion).
 // Resto de assets same-origin + SDK de Firebase (gstatic): cache-first.
 // Las llamadas de datos a Firestore NO se cachean (persistencia offline de Firestore).
-var CACHE = "rtenis-v229";
+var CACHE = "rtenis-v230";
 var ASSETS = ["./", "./index.html", "./manifest.json", "./assets/logo.png", "./assets/logo-padel.png", "./assets/ball.webp", "./assets/banner.webp", "./assets/icon-192.png", "./assets/icon-512.png",
   "./assets/tn-espera.png", "./assets/tn-saque.png", "./assets/tn-d_plano.png", "./assets/tn-d_carrera.png", "./assets/tn-d_salto.png", "./assets/tn-d_volea.png",
   "./assets/tn-r_plano.png", "./assets/tn-r_carrera.png", "./assets/tn-r_carrera1m.png", "./assets/tn-r_volea.png",
@@ -28,8 +28,10 @@ self.addEventListener("message", function(e){
 self.addEventListener("activate", function(e){
   e.waitUntil(
     caches.keys().then(function(keys){
+      // borra cache vieja de ESTA app (deja intactas las de otras apps RDS,
+      // que comparten origen -- caches.keys() ve TODAS las del origen).
       return Promise.all(keys.map(function(k){
-        if (k !== CACHE) return caches.delete(k);
+        if (k.indexOf("rtenis-") === 0 && k !== CACHE) return caches.delete(k);
       }));
     }).then(function(){ return self.clients.claim(); })
   );
