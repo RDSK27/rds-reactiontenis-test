@@ -464,7 +464,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v233</div>
+      <div class="app-ver">v234</div>
       <div id="pending-sync" class="pending-sync"></div>
       </div>
     </div>
@@ -714,7 +714,7 @@ table.rk tr.top3 td{background:#f7efe7;}
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBbEgbWddPt_rhPM24bL_Nacp7TAlh1biM",
@@ -789,6 +789,17 @@ window.RDS_DB = {
       var p2 = loadPending(); p2.push(rec); savePending(p2); updatePendingUI();
       return { queued: true };
     });
+  },
+  watchAll: function(cb, onErr){
+    if (!db) return null;
+    try {
+      return onSnapshot(collection(db, "scores_reactiontenis"), function(snap){
+        if (snap.metadata.fromCache) return;   // sin servidor no hay datos reales: no pisar la copia guardada
+        var out = [];
+        snap.forEach(function(d){ out.push(d.data()); });
+        cb(out);
+      }, function(){ if (onErr) onErr(); });
+    } catch(e){ return null; }
   },
   fetchAll: function(){
     if (!db) return Promise.reject(new Error("no-db"));
@@ -914,7 +925,7 @@ var lastPlayed = null;
 
 // ---------- Utilidades DOM ----------
 function $(id){ return document.getElementById(id); }
-function show(screenId){
+function show(screenId){ if (screenId !== "screen-ranking" && typeof stopRankWatch === "function") stopRankWatch();
   var s = document.querySelectorAll(".screen");
   for (var i=0;i<s.length;i++){ s[i].classList.remove("active"); }
   $(screenId).classList.add("active");
@@ -2210,7 +2221,7 @@ function hideGameOverlays(){
   state.rivalSetup = false;
 }
 
-function startGame(){
+function startGame(){ try { warmRank(); } catch(e){}
   hideGameOverlays();
   lastPlayed = { mode: state.mode, count: state.count };
   if (state.mode === "infinito"){ startInfinito(); return; }
@@ -5023,19 +5034,15 @@ function normScores(r){                       // {m,r} (Firestore) -> [m,r] (lo 
 function renderRanking(){
   var host = $("rk-table");
   var list;
-  if (allScores){
-    list = allScores.filter(function(r){
-      if (r.mode !== rankFilter.mode) return false;
-      if (isFreeMode(rankFilter.mode)) return true;    // Infinito/Peloteo: sin filtros inferiores
-      if (rankFilter.mode === "normal") return true;   // JUEGO: sin longitud de set
-      if (r.count !== rankFilter.count) return false;
-      return (r.matchMode || "azar") === rankFilter.matchMode;   // excluye azar
-    });
-  } else {
-    var free = isFreeMode(rankFilter.mode);
-    list = safeGet(lbKey(rankFilter.mode, free ? 0 : rankFilter.count, free ? true : rankFilter.penaliza));
-    if (!free && rankFilter.mode !== "normal"){ list = list.filter(function(r){ return (r.matchMode || "azar") === rankFilter.matchMode; }); }
-  }
+  var free = isFreeMode(rankFilter.mode);
+  var loc = safeGet(lbKey(rankFilter.mode, free ? 0 : rankFilter.count, free ? true : rankFilter.penaliza));
+  list = mergeRank(allScores || [], loc).filter(function(r){
+    if (r.mode !== rankFilter.mode) return false;
+    if (free) return true;                            // Infinito/Peloteo: sin filtros inferiores
+    if (rankFilter.mode === "normal") return true;   // JUEGO: sin longitud de set
+    if (r.count !== rankFilter.count) return false;
+    return (r.matchMode || "azar") === rankFilter.matchMode;   // excluye azar
+  });
   list = list.filter(function(r){ return ((r.disc === "padel") ? "padel" : "tenis") === rankFilter.disc; });   // tenis / padel
   list = list.map(normScores);
   list.sort(rankSorter());
@@ -5103,21 +5110,53 @@ function openRanking(){
   loadRanking();
 }
 
+/* Ranking (2026-09-30): lo que se ve es SIEMPRE la union de (a) el ranking
+   global -- en directo si hay red (onSnapshot: si otro deportista sube al
+   primer puesto se ve al momento), o la ultima copia guardada de TODA la
+   coleccion si no la hay -- y (b) las marcas de ESTE dispositivo (incluidas
+   las aun pendientes de subir). Asi, sin conexion, se ve donde queda tu
+   marca dentro del ranking que ya conocias; al volver la red, la cola de
+   pendientes las sube y el global las incluye (se deduplican por contenido). */
+var rankUnsub = null;
+function stopRankWatch(){ if (rankUnsub){ try { rankUnsub(); } catch(e){} rankUnsub = null; } }
+function recKey(r){
+  var ks = Object.keys(r).filter(function(k){ return r[k] !== undefined; }).sort();
+  return ks.map(function(k){ return k + "=" + JSON.stringify(r[k]); }).join("&");
+}
+function mergeRank(globalRows, localRows){
+  var out = [], seen = {};
+  (globalRows || []).concat(localRows || []).forEach(function(r){
+    var k = recKey(r);
+    if (!seen[k]){ seen[k] = 1; out.push(r); }
+  });
+  return out;
+}
+/* Precarga: al empezar un ejercicio con red, se guarda toda la coleccion
+   (como mucho cada 30 min) para ver los rankings luego sin conexion. */
+function warmRank(){
+  if (!(window.RDS_DB && window.RDS_DB.ok) || !navigator.onLine) return;
+  var t = 0;
+  try { t = +window.localStorage.getItem("rtenis_rankcache_ts") || 0; } catch(e){}
+  if (Date.now() - t < 30*60*1000) return;
+  window.RDS_DB.fetchAll().then(function(list){
+    safeSet("rtenis_rankcache_all", list); safeSet("rtenis_rankcache_ts", Date.now());
+  }).catch(function(){});
+}
+
 function loadRanking(){
   var host = $("rk-table");
+  stopRankWatch();
   if (window.RDS_DB && window.RDS_DB.ok){
     var cached = safeGet("rtenis_rankcache_all");
     if (cached && cached.length){ allScores = cached; renderRanking(); }
-    else { host.innerHTML = '<div class="rk-empty">Cargando ranking global...</div>'; }
-    window.RDS_DB.fetchAll().then(function(list){
+    else if (navigator.onLine){ allScores = null; host.innerHTML = '<div class="rk-empty">Cargando ranking global...</div>'; }
+    else { allScores = null; renderRanking(); }
+    rankUnsub = window.RDS_DB.watchAll(function(list){
       allScores = list;
-      safeSet("rtenis_rankcache_all", list);
+      safeSet("rtenis_rankcache_all", list); safeSet("rtenis_rankcache_ts", Date.now());
       renderRanking();
-    }).catch(function(){
-      if (!cached || !cached.length){
-        allScores = null;
-        host.innerHTML = '<div class="rk-empty">No se pudo cargar el ranking global. Revisa la conexion.</div>';
-      }
+    }, function(){
+      if (!cached || !cached.length){ allScores = null; renderRanking(); }
     });
   } else {
     allScores = null;
