@@ -464,7 +464,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v239</div>
+      <div class="app-ver">v240</div>
       <div id="pending-sync" class="pending-sync"></div>
       </div>
     </div>
@@ -846,6 +846,50 @@ window.fbReconcile=function(dry){ return reconcileOrphans(true, !!dry); };
 setTimeout(reconcileOrphans, 8000);
 window.addEventListener('online', function(){ setTimeout(reconcileOrphans, 4000); });
 document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible'){ setTimeout(reconcileOrphans, 4000); } });
+/* ===== Ranking INCREMENTAL (2-oct-2026): ahorra lecturas de Firestore =====
+   Cada dispositivo guarda la coleccion que ya conoce (localStorage) y solo pide lo nuevo: lectura completa la
+   primera vez (y cada 7 dias, por si se borro algo a mano); despues solo ts >= ultimo-6h, con escucha en directo
+   solo sobre esos documentos nuevos. Las marcas de otros siguen apareciendo al instante; el guardado no cambia. */
+function mkInc(COL,TSF,KEY,STRIP){
+  var WEEK=7*864e5, MARGIN=6*36e5, c={docs:{},full:0,ts:0}, loaded=false;
+  function load(){ if(loaded) return; loaded=true; try{ var o=JSON.parse(localStorage.getItem(KEY)||'null'); if(o&&o.docs&&typeof o.docs==='object') c=o; }catch(e){} }
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(c)); }catch(e){} }
+  function strip(r){ if(STRIP&&r&&r[STRIP]!==undefined) delete r[STRIP]; return r; }
+  function put(id,r){ c.docs[id]=r; var t=r&&r[TSF]; if(typeof t==='number'&&t>c.ts&&t<=Date.now()+36e5) c.ts=t; }
+  function rows(f){ var out=[],id,r; for(id in c.docs){ r=c.docs[id]; if(!f||f(r)) out.push(r); } return out; }
+  function need(){ return !c.full||Date.now()-c.full>WEEK||!Object.keys(c.docs).length; }
+  function tailQ(){ return query(collection(db,COL), where(TSF,'>=',Math.max(0,c.ts-MARGIN))); }
+  function fullLoad(){ return getDocs(collection(db,COL)).then(function(snap){ c.docs={}; c.ts=0; snap.forEach(function(d){ put(d.id,strip(d.data())); }); c.full=Date.now(); save(); }); }
+  return {
+    watch:function(f,cb,errCb){
+      if(!db) return null; load();
+      var unsub=null, dead=false;
+      if(Object.keys(c.docs).length){ try{ cb(rows(f)); }catch(e){} }
+      function listen(){
+        if(dead) return;
+        try{
+          unsub=onSnapshot(tailQ(), { includeMetadataChanges:true }, function(snap){
+            if(snap.metadata.fromCache) return;   // sin servidor no hay datos reales: no pisar la copia guardada
+            snap.docChanges().forEach(function(ch){ if(ch.type==='removed') delete c.docs[ch.doc.id]; else put(ch.doc.id,strip(ch.doc.data())); });
+            save(); cb(rows(f));
+          }, function(){ if(errCb){ try{ errCb(); }catch(e){} } });
+        }catch(e){}
+      }
+      if(need()){ fullLoad().then(function(){ if(dead) return; cb(rows(f)); listen(); }).catch(function(){ if(errCb){ try{ errCb(); }catch(e){} } }); }
+      else listen();
+      return function(){ dead=true; if(unsub){ try{ unsub(); }catch(e){} unsub=null; } };
+    },
+    load:async function(f){
+      if(!db) return null; load();
+      try{
+        if(need()) await fullLoad();
+        else { var snap=await getDocs(tailQ()); snap.forEach(function(d){ put(d.id,strip(d.data())); }); save(); }
+        return rows(f);
+      }catch(e){ return null; }
+    }
+  };
+}
+var RINC=mkInc('scores_reactiontenis','date','rtenis_inc','balls');
 window.RDS_DB = {
   ok: !!db,
   add: function(rec){
@@ -858,22 +902,11 @@ window.RDS_DB = {
   },
   watchAll: function(cb, onErr){
     if (!db) return null;
-    try {
-      return onSnapshot(collection(db, "scores_reactiontenis"), function(snap){
-        if (snap.metadata.fromCache) return;   // sin servidor no hay datos reales: no pisar la copia guardada
-        var out = [];
-        snap.forEach(function(d){ out.push(d.data()); });
-        cb(out);
-      }, function(){ if (onErr) onErr(); });
-    } catch(e){ return null; }
+    try { return RINC.watch(null, cb, onErr); } catch(e){ return null; }
   },
   fetchAll: function(){
     if (!db) return Promise.reject(new Error("no-db"));
-    return getDocs(collection(db, "scores_reactiontenis")).then(function(snap){
-      var out = [];
-      snap.forEach(function(d){ out.push(d.data()); });
-      return out;
-    });
+    return RINC.load(null).then(function(rows){ if (rows === null) throw new Error("fetch"); return rows; });
   }
 };
 </script>
