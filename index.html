@@ -326,6 +326,9 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 .res-bot::after{content:"";position:absolute;top:0;left:7%;right:7%;height:3px;margin-top:-1.5px;background:var(--rds-red);}
 .res-actions{display:flex;flex-direction:row;align-items:stretch;justify-content:center;gap:8px;margin-top:10px;}
 .res-actions button,.save-row-inner button{flex:1 1 0;min-width:0;width:auto;padding:7px 6px;font-size:0.65rem;font-weight:900;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;border:none;border-radius:4px;}
+  .pos-wrap{display:none;flex-direction:column;align-items:center;gap:4px;padding:6px 16px 0;text-align:center;}
+  .pos-circle{width:54px;height:54px;border-radius:50%;background:#000;color:#fff;font-weight:900;font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+  .pos-txt{font-size:10px;font-weight:700;letter-spacing:0.04em;color:#555;}
 .save-row-inner{display:flex;align-items:stretch;justify-content:center;gap:8px;width:calc(60% + 92px);max-width:100%;}
 .save-row-inner .res-save-btn{flex:1 1 0;max-width:60%;}
 .score-board{margin-top:8px;border:1px solid #e4e4e4;border-radius:7px;overflow:hidden;background:#fff;}
@@ -464,7 +467,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v241</div>
+      <div class="app-ver">v242</div>
       <div id="pending-sync" class="pending-sync"></div>
       </div>
     </div>
@@ -638,6 +641,7 @@ table.rk tr.top3 td{background:#f7efe7;}
       </div>
     </div>
     <div class="pad" id="results-pad"></div>
+    <div class="pos-wrap" id="posWrap"><div class="pos-circle" id="posNum">-</div><div class="pos-txt">posici&#243;n de este resultado en el ranking</div></div>
     <div class="res-save-row" id="save-row">
       <div class="save-row-inner" id="save-row-inner"></div>
     </div>
@@ -1024,7 +1028,7 @@ var lastPlayed = null;
 
 // ---------- Utilidades DOM ----------
 function $(id){ return document.getElementById(id); }
-function show(screenId){ if (screenId !== "screen-ranking" && typeof stopRankWatch === "function") stopRankWatch();
+function show(screenId){ if(screenId==="screen-results") setTimeout(updatePos,0); if (screenId !== "screen-ranking" && typeof stopRankWatch === "function") stopRankWatch();
   var s = document.querySelectorAll(".screen");
   for (var i=0;i<s.length;i++){ s[i].classList.remove("active"); }
   $(screenId).classList.add("active");
@@ -4948,7 +4952,7 @@ function renderLimite(reason){
 
 function numOk(v){ return (typeof v === "number" && isFinite(v)) ? v : 0; }
 
-function pushScore(rec){
+function pushScore(rec){ if(window.__posProbe){ window.__posProbe.rec=rec; return Promise.resolve(); }
   rtSaved = true;
   if (rec.disc == null) rec.disc = (state.disc === "padel") ? "padel" : "tenis";   // disciplina: separa rankings tenis/padel
   // respaldo local (offline / sin Firebase)
@@ -5129,6 +5133,36 @@ function normScores(r){                       // {m,r} (Firestore) -> [m,r] (lo 
     r.setScores = out;
   }
   return r;
+}
+/* Posicion de este resultado (2026-10-05): con la copia local del ranking (cache + marcas pendientes de este dispositivo), sin lecturas
+   de Firestore. Cuenta solo la mejor marca de cada OTRA persona, como el ranking (que oculta repetidos). Sin copia guardada, no se muestra. */
+function updatePos(){
+  var w=document.getElementById('posWrap'); if(!w) return;
+  w.style.display='none';
+  try{
+    if(rtSaved!==false||typeof rtPendingSave!=='function') return;
+    var raw=window.localStorage.getItem('rtenis_rankcache_all'); if(!raw) return;
+    window.__posProbe={}; var rec=null;
+    try{ rtPendingSave(); rec=window.__posProbe.rec; }catch(x){} finally{ window.__posProbe=null; }
+    if(!rec) return;
+    var g=JSON.parse(raw), disc=(state.disc==='padel')?'padel':'tenis', free=isFreeMode(rec.mode);
+    rec.disc=disc; normScores(rec);
+    var loc=pendingOnly(safeGet(lbKey(rec.mode,free?0:rec.count,free?true:rec.penaliza)));
+    var rows=mergeRank(g,loc).filter(function(r){
+      if(r.mode!==rec.mode) return false;
+      if(!free && rec.mode!=='normal'){ if(r.count!==rec.count) return false; if((r.matchMode||'azar')!==(rec.matchMode||'azar')) return false; }
+      return ((r.disc==='padel')?'padel':'tenis')===disc;
+    }).map(normScores);
+    var cmp=free?cmpFree:(rec.mode==='normal'?function(a,b){ return (a.avgRT||0)-(b.avgRT||0); }:(rankFilter.order==='resultado'?(rec.mode==='extremo'?cmpSetResult:cmpPartidoResult):cmpAnalisis));
+    function srt(l){ l.sort(cmp); }
+    srt(rows);
+    var seen={}, out=[], me=(rec.name||'').toLowerCase().trim();
+    rows.forEach(function(r){ var n=(r.name||'').toLowerCase().trim(); if(n===me||seen[n]) return; seen[n]=1; out.push(r); });
+    out.push(rec); srt(out);
+    var p=out.indexOf(rec)+1, e=document.getElementById('posNum');
+    e.textContent=p; e.style.fontSize=p>=100?'16px':(p>=10?'22px':'26px');
+    w.style.display='flex';
+  }catch(e){}
 }
 function renderRanking(){
   var host = $("rk-table");
