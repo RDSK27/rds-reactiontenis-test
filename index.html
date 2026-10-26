@@ -343,6 +343,10 @@ input,select,textarea{-webkit-user-select:text;user-select:text;}
 .read-pct-line{margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:#666666;background:#fff;border:1px solid #e4e4e4;border-radius:7px;padding:9px 10px;}
 .read-pct-line b{color:var(--rds-red);font-size:14px;}
 .save-row-inner .res-rank-btn{flex:none;width:84px;}
+/* S | M | T (semana, mes, todo) junto a Mostrar repetidos, misma altura */
+.per-tog{display:flex;gap:4px;flex:none;}
+.per-tog button{width:30px;padding:7px 0;font-size:0.65rem;font-weight:900;font-family:inherit;border:1px solid #bbb;background:#fff;color:#111;border-radius:4px;cursor:pointer;}
+.per-tog button.on{background:var(--rds-red);color:#fff;border-color:var(--rds-red);}
 .res-save-btn{background:var(--rds-red);color:#fff;}
 .res-save-btn[disabled]{opacity:1;background:#9a9a9a;}
 .res-rank-btn{background:#111;color:#fff;}
@@ -467,7 +471,7 @@ table.rk tr.top3 td{background:#f7efe7;}
         <select id="home-sport" class="home-sport-select"><option value="ATL">Atletismo</option><option value="AUT">Automovilismo</option><option value="BMT">B&#225;dminton</option><option value="BLC">Baloncesto</option><option value="BLM">Balonmano</option><option value="BOX">Boxeo</option><option value="CIC">Ciclismo</option><option value="ESC">Escalada</option><option value="ESG">Esgrima</option><option value="ESQ">Esqu&#237;</option><option value="FTB">F&#250;tbol</option><option value="GIM">Gimnasia</option><option value="GLF">Golf</option><option value="HAL">Halterofilia</option><option value="HCK">Hockey</option><option value="JUD">Judo</option><option value="KRT">Karate</option><option value="MOT">Motociclismo</option><option value="NTC">Nataci&#243;n</option><option value="OTR" selected>Otros</option><option value="PAD">P&#225;del</option><option value="PRG">Pirag&#252;ismo</option><option value="REM">Remo</option><option value="RUG">Rugby</option><option value="SRF">Surf</option><option value="TKD">Taekwondo</option><option value="TNS">Tenis</option><option value="TRI">Triatl&#243;n</option><option value="VOL">Voleibol</option></select>
       </div>
       <div class="start-row"><div class="start-ring"><button class="btn primary" id="btn-start">START</button></div><div class="start-ring"><button class="btn primary" id="btn-1v1">1vs1</button></div><div class="start-ring"><button id="btn-goranking" class="start-btn rank-btn" aria-label="Ranking"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 13.5v7.5M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/></svg></button></div></div>
-      <div class="app-ver">v245</div>
+      <div class="app-ver">v246</div>
       <div id="pending-sync" class="pending-sync"></div>
       </div>
     </div>
@@ -676,9 +680,10 @@ table.rk tr.top3 td{background:#f7efe7;}
       <div id="rk-save-row" style="display:none; justify-content:center; padding:8px 16px 0;">
         <button id="btnGuardarRank" style="width:60%; padding:8px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; background:var(--rds-red); color:#fff; border:none; cursor:pointer; border-radius:4px;" aria-label="Guardar mi marca" title="Guardar mi marca">Guardar mi marca</button>
       </div>
-      <div style="display:flex; justify-content:center; gap:8px; padding:8px 16px 8px;">
-        <button id="btn-hide-repeated" style="width:47%; padding:7px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; background:#111; color:#fff; border:none; cursor:pointer; border-radius:4px;" onclick="toggleHideRepeated()">Mostrar repetidos</button>
-        <button id="btn-rank-order" class="rk-ball-btn" style="width:47%; padding:7px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; border:none; cursor:pointer; border-radius:4px;" onclick="toggleRankOrder()">AN&#193;LISIS</button>
+      <div style="display:flex; align-items:stretch; justify-content:center; gap:8px; padding:8px 16px 8px;">
+        <button id="btn-hide-repeated" style="flex:1.9 1 0; min-width:0; padding:7px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; background:#111; color:#fff; border:none; cursor:pointer; border-radius:4px;" onclick="toggleHideRepeated()">Mostrar repetidos</button>
+        <div class="per-tog" id="per-tog"><button type="button" data-p="s" onclick="setRankPer('s')" title="Ultima semana">S</button><button type="button" data-p="m" onclick="setRankPer('m')" title="Ultimo mes">M</button><button type="button" data-p="t" class="on" onclick="setRankPer('t')" title="Todo">T</button></div>
+        <button id="btn-rank-order" class="rk-ball-btn" style="flex:1 1 0; min-width:0; padding:7px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; border:none; cursor:pointer; border-radius:4px;" onclick="toggleRankOrder()">AN&#193;LISIS</button>
       </div>
       <div class="results-actions" style="margin-top:0;">
         <button class="game-ctrl-btn" onclick="goHome()">&#8592; Inicio</button>
@@ -1052,6 +1057,19 @@ function limitPerName(list, maxPer){
   return out;
 }
 var hideRepeated = true;
+/* periodo del ranking: s = ultimos 7 dias, m = ultimos 30, t = todo (por defecto). Marca sin fecha: solo cuenta en Todo. */
+var rankPer = "t";
+function setRankPer(p){
+  rankPer = p;
+  var bs = document.querySelectorAll("#per-tog button"), i;
+  for (i = 0; i < bs.length; i++){ bs[i].classList.toggle("on", bs[i].getAttribute("data-p") === p); }
+  renderRanking();
+}
+function filterPeriod(list){
+  if (rankPer === "t") return list;
+  var lim = Date.now() - (rankPer === "s" ? 7 : 30) * 86400000;
+  return list.filter(function(d){ var t = (typeof d.ts === "number") ? d.ts : (typeof d.date === "number" ? d.date : null); if (t == null && typeof d.date === "string"){ var m = d.date.match(/^(\d+)\/(\d+)\/(\d+)$/); if (m) t = new Date(+m[3], +m[2]-1, +m[1]).getTime(); } return t != null && t >= lim; });
+}
 var allScores = null;
 var lastPlayed = null;
 
@@ -5078,7 +5096,7 @@ function cmpFree(a, b){
   return (a.avgRT||0) - (b.avgRT||0);            // empate: reaccion mas rapida
 }
 function renderRankList(list, host, mode){
-  list = filterRepeated(list);
+  list = filterRepeated(filterPeriod(list));
   if (!list.length){
     host.innerHTML = '<div class="rank-full-empty">Sin resultados</div>';
     return;
@@ -5265,6 +5283,7 @@ function openRanking(){
   syncRankFilters();
   applyRankRows();
   hideRepeated = true;
+  rankPer = "t"; (function(){ var bs = document.querySelectorAll("#per-tog button"), i; for (i = 0; i < bs.length; i++){ bs[i].classList.toggle("on", bs[i].getAttribute("data-p") === "t"); } })();
   var dd = $("btn-hide-repeated");
   if (dd){ dd.textContent = "Mostrar repetidos"; }
   rtUpdateRankSaveBtn();
