@@ -2,7 +2,7 @@
 // Documento HTML / navegacion: network-first (siempre la ultima version con conexion).
 // Resto de assets same-origin + SDK de Firebase (gstatic): cache-first.
 // Las llamadas de datos a Firestore NO se cachean (persistencia offline de Firestore).
-var CACHE = "rtenis-v244";
+var CACHE = "rtenis-v245";
 var ASSETS = ["./", "./index.html", "./manifest.json", "./assets/logo.png", "./assets/logo-padel.png", "./assets/ball.webp", "./assets/banner.webp", "./assets/icon-192.png", "./assets/icon-512.png",
   "./assets/tn-espera.png", "./assets/tn-saque.png", "./assets/tn-d_plano.png", "./assets/tn-d_carrera.png", "./assets/tn-d_salto.png", "./assets/tn-d_volea.png",
   "./assets/tn-r_plano.png", "./assets/tn-r_carrera.png", "./assets/tn-r_carrera1m.png", "./assets/tn-r_volea.png",
@@ -42,16 +42,27 @@ self.addEventListener("fetch", function(e){ if(e.request.url.indexOf('/rds-ranki
   var url = e.request.url;
 
   // Documento / navegacion: network-first para servir siempre la ultima version
+  /* 2026-11-17: con cobertura mala la peticion a la red podia tardar 30-60 s en dar error y, mientras, la pantalla
+     se quedaba en blanco. Ahora se espera a la red como mucho NAV_WAIT ms; si no ha llegado, se muestra la copia
+     guardada y la descarga sigue en segundo plano para dejar guardada la version nueva para la proxima vez. */
   if (e.request.mode === "navigate") {
-    e.respondWith(
-      fetch(e.request, {cache: "no-store"}).then(function(resp){
-        var clone = resp.clone();
-        caches.open(CACHE).then(function(c){ try { c.put("./index.html", clone); } catch(err){} });
-        return resp;
-      }).catch(function(){
-        return caches.match("./index.html").then(function(c){ return c || caches.match("./"); });
-      })
-    );
+    var req = e.request;
+    var NAV_WAIT = 3000;
+    var net = fetch(req, {cache:'no-store'}).then(function(resp){
+      if(resp && resp.ok){ var copy = resp.clone(); caches.open(CACHE).then(function(cache){ try{ cache.put('./index.html', copy); }catch(err){} }); }
+      return resp;
+    });
+    function saved(){ return caches.match(req).then(function(c){ return c || caches.match('./index.html'); }); }
+    e.respondWith(new Promise(function(resolve){
+      var done = false;
+      function give(r){ if(!done && r){ done = true; resolve(r); } }
+      var t = setTimeout(function(){ saved().then(give); }, NAV_WAIT);
+      net.then(function(r){ clearTimeout(t); give(r); }, function(){
+        clearTimeout(t);
+        saved().then(function(c){ if(c) give(c); else if(!done){ done = true; resolve(Response.error()); } });
+      });
+    }));
+    e.waitUntil(net.catch(function(){}));
     return;
   }
 
